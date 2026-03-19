@@ -1,5 +1,42 @@
 <template>
   <q-page padding>
+    <div v-if="loading" class="portfolio-page">
+      <section class="content-card q-pa-lg q-mb-lg page-skeleton-panel">
+        <q-skeleton square height="240px" class="rounded-borders" />
+        <div class="row q-col-gutter-lg q-mt-lg items-center">
+          <div class="col-auto">
+            <q-skeleton type="QAvatar" size="96px" />
+          </div>
+          <div class="col">
+            <q-skeleton type="text" width="24%" />
+            <q-skeleton type="text" width="52%" class="q-mt-sm" />
+            <q-skeleton type="text" width="72%" class="q-mt-sm" />
+          </div>
+        </div>
+      </section>
+
+      <div class="portfolio-pro-grid portfolio-pro-grid--wide">
+        <main class="portfolio-pro-main">
+          <section v-for="section in 4" :key="`portfolio-skeleton-${section}`" class="content-card q-pa-lg q-mb-lg page-skeleton-panel">
+            <q-skeleton type="text" width="18%" />
+            <q-skeleton type="text" width="38%" class="q-mt-sm" />
+            <div class="q-mt-md">
+              <q-skeleton type="text" class="q-mt-sm" />
+              <q-skeleton type="text" width="88%" class="q-mt-xs" />
+              <q-skeleton type="text" width="72%" class="q-mt-xs" />
+            </div>
+          </section>
+        </main>
+        <aside class="portfolio-pro-side">
+          <section v-for="card in 3" :key="`portfolio-side-skeleton-${card}`" class="content-card q-pa-lg q-mb-lg page-skeleton-panel">
+            <q-skeleton type="text" width="42%" />
+            <q-skeleton type="text" width="76%" class="q-mt-sm" />
+            <q-skeleton type="text" width="64%" class="q-mt-xs" />
+          </section>
+        </aside>
+      </div>
+    </div>
+
     <div v-if="profile" class="portfolio-page">
       <ProfileHeaderBar
         :model-value="activeTab"
@@ -125,6 +162,7 @@ const $q = useQuasar()
 const route = useRoute()
 const community = useCommunityStore()
 const session = useSessionStore()
+const loading = ref(false)
 
 const activeTab = ref('overview')
 const commentDrafts = reactive({})
@@ -411,10 +449,15 @@ function sharePost(post) {
 }
 
 onMounted(async () => {
-  await Promise.all([community.fetchPublicProfile(route.params.username), community.fetchDevelopers()])
-  await nextTick()
-  updateActiveTabFromScroll()
-  window.addEventListener('scroll', updateActiveTabFromScroll, { passive: true })
+  loading.value = true
+  try {
+    await Promise.all([community.fetchPublicProfile(route.params.username), community.fetchDevelopers()])
+    await nextTick()
+    updateActiveTabFromScroll()
+    window.addEventListener('scroll', updateActiveTabFromScroll, { passive: true })
+  } finally {
+    loading.value = false
+  }
 })
 
 onBeforeUnmount(() => {

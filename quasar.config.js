@@ -170,6 +170,25 @@ export default defineConfig((ctx) => {
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
     pwa: {
       workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
+      extendManifestJson (json) {
+        Object.assign(json, {
+          name: 'khmerdevcommunity',
+          short_name: 'khdev',
+          description: 'Khmer developer community platform for builders, jobs, events, portfolios, and messaging.',
+          start_url: '/#/m',
+          display: 'standalone',
+          background_color: '#f8fafc',
+          theme_color: '#5865f2',
+          icons: [
+            { src: 'icons/icon-128x128.png', sizes: '128x128', type: 'image/png' },
+            { src: 'icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+            { src: 'icons/icon-256x256.png', sizes: '256x256', type: 'image/png' },
+            { src: 'icons/icon-384x384.png', sizes: '384x384', type: 'image/png' },
+            { src: 'icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+            { src: 'icons/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          ],
+        })
+      },
       // swFilename: 'sw.js',
       // manifestFilename: 'manifest.json',
       // extendManifestJson (json) {},

@@ -1,5 +1,34 @@
 <template>
   <q-page padding>
+    <div v-if="loading" class="row q-col-gutter-lg">
+      <div v-for="index in 4" :key="`project-skeleton-${index}`" class="col-12 col-lg-6">
+        <div class="content-card q-pa-lg full-height page-skeleton-panel">
+          <div class="utility-card__head">
+            <div class="col">
+              <q-skeleton type="text" width="46%" />
+              <q-skeleton type="text" width="72%" class="q-mt-sm" />
+            </div>
+            <q-skeleton type="QChip" width="88px" />
+          </div>
+          <q-skeleton type="text" class="q-mt-lg" />
+          <q-skeleton type="text" width="86%" class="q-mt-xs" />
+          <div class="row q-col-gutter-sm q-mt-lg">
+            <div v-for="item in 3" :key="`project-skeleton-chip-${index}-${item}`" class="col-auto">
+              <q-skeleton type="QChip" width="84px" />
+            </div>
+          </div>
+          <div class="row items-center justify-between q-mt-lg">
+            <q-skeleton type="text" width="28%" />
+            <div class="row q-gutter-sm">
+              <q-skeleton type="rect" width="92px" height="36px" />
+              <q-skeleton type="rect" width="92px" height="36px" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <template v-else>
     <div class="page-intro q-mb-lg">
       <div>
         <div class="section-label khmer-copy">Project Launchpad</div>
@@ -113,6 +142,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    </template>
   </q-page>
 </template>
 
@@ -129,6 +159,7 @@ const session = useSessionStore()
 const dialogOpen = ref(false)
 const submitting = ref(false)
 const stackText = ref('')
+const loading = ref(false)
 const projectForm = reactive({
   name: '',
   tagline: '',
@@ -142,8 +173,13 @@ const projects = computed(() => community.projects)
 const openCollabCount = computed(() => projects.value.filter((project) => project.looking_for_collaborators).length)
 const stackCount = computed(() => new Set(projects.value.flatMap((project) => project.tech_stack || [])).size)
 
-onMounted(() => {
-  community.fetchProjects()
+onMounted(async () => {
+  loading.value = true
+  try {
+    await community.fetchProjects()
+  } finally {
+    loading.value = false
+  }
 })
 
 async function submitProject() {

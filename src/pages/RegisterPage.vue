@@ -3,7 +3,9 @@
     <div class="auth-shell">
       <div class="auth-grid">
         <section class="auth-showcase">
-          <div class="auth-showcase__badge">Khmer Dev Community</div>
+          <div class="auth-showcase__brand">
+            <img src="/img/logo-with-name.png" alt="khmerdevcommunity" class="auth-showcase__brand-image" />
+          </div>
           <div class="auth-showcase__copy">
             <div class="section-label">Onboarding</div>
             <h1 class="auth-showcase__title">Create a developer identity that grows with your work.</h1>

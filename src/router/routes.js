@@ -5,6 +5,7 @@ const routes = [
     children: [
       { path: '', name: 'home', component: () => import('pages/HomePage.vue'), meta: { title: 'Home' } },
       { path: 'feed', name: 'feed', component: () => import('pages/FeedPage.vue'), meta: { title: 'Community Feed' } },
+      { path: 'feed/:id', name: 'feed-detail', component: () => import('pages/PostDetailPage.vue'), meta: { title: 'Feed Detail' } },
       { path: 'jobs', name: 'jobs', component: () => import('pages/JobsPage.vue'), meta: { title: 'Jobs' } },
       { path: 'jobs/:slug', name: 'job-detail', component: () => import('pages/JobDetailPage.vue'), meta: { title: 'Job Detail' } },
       {
@@ -85,6 +86,54 @@ const routes = [
         meta: { mobileShell: true, requiresAuth: true, title: 'Feed' },
       },
       {
+        path: 'm/feed/:id',
+        name: 'mobile-feed-detail',
+        component: () => import('pages/PostDetailPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Post' },
+      },
+      {
+        path: 'm/jobs',
+        name: 'mobile-jobs',
+        component: () => import('pages/JobsPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Jobs' },
+      },
+      {
+        path: 'm/jobs/:slug',
+        name: 'mobile-job-detail',
+        component: () => import('pages/JobDetailPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Job Detail' },
+      },
+      {
+        path: 'm/projects',
+        name: 'mobile-projects',
+        component: () => import('pages/ProjectsPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Projects' },
+      },
+      {
+        path: 'm/events',
+        name: 'mobile-events',
+        component: () => import('pages/EventsPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Events' },
+      },
+      {
+        path: 'm/events/:id',
+        name: 'mobile-event-detail',
+        component: () => import('pages/EventDetailPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Event Detail' },
+      },
+      {
+        path: 'm/developers',
+        name: 'mobile-developers',
+        component: () => import('pages/DevelopersPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Builders' },
+      },
+      {
+        path: 'm/search',
+        name: 'mobile-search',
+        component: () => import('pages/SearchPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Search' },
+      },
+      {
         path: 'm/post',
         name: 'mobile-post',
         component: () => import('pages/mobile/MobilePostPage.vue'),
@@ -101,6 +150,30 @@ const routes = [
         name: 'mobile-profile',
         component: () => import('pages/mobile/MobileProfilePage.vue'),
         meta: { mobileShell: true, requiresAuth: true, title: 'Profile' },
+      },
+      {
+        path: 'm/portfolio',
+        name: 'mobile-portfolio',
+        component: () => import('pages/MyPortfolioPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Portfolio' },
+      },
+      {
+        path: 'm/u/:username',
+        name: 'mobile-public-portfolio',
+        component: () => import('pages/PublicPortfolioPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Portfolio' },
+      },
+      {
+        path: 'm/saved',
+        name: 'mobile-saved',
+        component: () => import('pages/SavedPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Saved' },
+      },
+      {
+        path: 'm/settings',
+        name: 'mobile-settings',
+        component: () => import('pages/SettingsPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Settings' },
       },
       {
         path: 'm/messages',

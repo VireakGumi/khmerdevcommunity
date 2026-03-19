@@ -1,11 +1,6 @@
 <template>
   <div class="sidebar-layout">
     <section class="sidebar-promo">
-      <div class="sidebar-promo__badge">
-        <q-icon name="auto_awesome" size="14px" />
-        <span>Khmer Network</span>
-      </div>
-
       <div class="sidebar-promo__copy">
         <div class="section-label">Community</div>
         <div class="sidebar-promo__title">Build with the community</div>

@@ -1,5 +1,47 @@
 <template>
   <q-page padding>
+    <template v-if="loading">
+      <section class="content-card q-pa-lg q-mb-lg page-skeleton-panel">
+        <q-skeleton type="text" width="22%" />
+        <q-skeleton type="text" width="58%" class="q-mt-md" />
+        <q-skeleton type="text" class="q-mt-sm" />
+        <q-skeleton type="text" width="82%" class="q-mt-xs" />
+        <div class="row q-col-gutter-md q-mt-lg">
+          <div v-for="index in 3" :key="`home-chip-${index}`" class="col-auto">
+            <q-skeleton type="QChip" width="124px" />
+          </div>
+        </div>
+        <div class="row q-col-gutter-md q-mt-lg">
+          <div v-for="index in 4" :key="`home-stat-${index}`" class="col-12 col-sm-6 col-xl-3">
+            <div class="home-stat-card">
+              <q-skeleton type="text" width="42%" />
+              <q-skeleton type="text" width="26%" class="q-mt-sm" />
+              <q-skeleton type="text" width="68%" class="q-mt-sm" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-card q-pa-lg q-mb-lg page-skeleton-panel">
+        <div class="row q-col-gutter-lg">
+          <div v-for="index in 3" :key="`home-board-${index}`" class="col-12 col-lg-4">
+            <div class="home-board home-board--dashboard">
+              <q-skeleton type="text" width="36%" />
+              <q-skeleton type="text" width="74%" class="q-mt-sm" />
+              <div class="q-mt-md">
+                <div v-for="item in 3" :key="`home-board-item-${index}-${item}`" class="home-item q-mb-md">
+                  <q-skeleton type="text" width="48%" />
+                  <q-skeleton type="text" class="q-mt-sm" />
+                  <q-skeleton type="text" width="72%" class="q-mt-xs" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </template>
+
+    <template v-else>
     <section class="content-card home-hero q-pa-lg q-mb-lg">
       <div class="home-hero__main">
         <div class="portfolio-pro-kicker">Khmer Developer Community</div>
@@ -193,16 +235,18 @@
         </article>
       </div>
     </section>
+    </template>
   </q-page>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useCommunityStore } from 'src/stores/community-store'
 import { formatDate } from 'src/utils/formatters'
 
 const community = useCommunityStore()
 const home = computed(() => community.home)
+const loading = ref(false)
 
 const featuredProjects = computed(() => (home.value?.featuredProjects || []).slice(0, 4))
 const featuredJobs = computed(() => (home.value?.featuredJobs || []).slice(0, 4))
@@ -221,9 +265,14 @@ function formatLabel(value) {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!community.home) {
-    community.fetchHome()
+    loading.value = true
+    try {
+      await community.fetchHome()
+    } finally {
+      loading.value = false
+    }
   }
 })
 </script>

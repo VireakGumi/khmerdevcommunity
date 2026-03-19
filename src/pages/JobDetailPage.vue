@@ -1,5 +1,47 @@
 <template>
   <q-page padding>
+    <div v-if="loading" class="row q-col-gutter-lg">
+      <div class="col-12 col-xl-8">
+        <div class="content-card q-pa-lg page-skeleton-panel">
+          <div class="row items-start justify-between q-col-gutter-md">
+            <div class="col">
+              <div class="row items-center q-gutter-md">
+                <q-skeleton type="QAvatar" size="64px" />
+                <div class="col">
+                  <q-skeleton type="text" width="28%" />
+                  <q-skeleton type="text" width="52%" class="q-mt-sm" />
+                  <q-skeleton type="text" width="38%" class="q-mt-sm" />
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm q-mt-md">
+                <div v-for="item in 3" :key="`job-detail-chip-${item}`" class="col-auto">
+                  <q-skeleton type="QChip" width="84px" />
+                </div>
+              </div>
+            </div>
+            <div class="col-auto column q-gutter-sm">
+              <q-skeleton type="rect" width="112px" height="40px" />
+              <q-skeleton type="rect" width="112px" height="40px" />
+            </div>
+          </div>
+          <q-skeleton type="text" class="q-mt-lg" />
+          <q-skeleton type="text" class="q-mt-sm" />
+          <q-skeleton type="text" width="84%" class="q-mt-xs" />
+        </div>
+      </div>
+      <div class="col-12 col-xl-4">
+        <div class="content-card q-pa-lg page-skeleton-panel">
+          <q-skeleton type="text" width="26%" />
+          <div class="utility-list q-mt-md">
+            <div v-for="item in 3" :key="`job-detail-side-${item}`" class="utility-card">
+              <q-skeleton type="text" width="34%" />
+              <q-skeleton type="text" width="64%" class="q-mt-sm" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="job" class="row q-col-gutter-lg">
       <div class="col-12 col-xl-8">
         <div class="content-card q-pa-lg">
@@ -94,6 +136,7 @@ const route = useRoute()
 const $q = useQuasar()
 const community = useCommunityStore()
 const session = useSessionStore()
+const loading = ref(false)
 const job = ref(null)
 const applicants = ref([])
 
@@ -106,10 +149,15 @@ const salaryText = computed(() => {
 const expiryText = computed(() => (job.value?.expires_at ? formatDate(job.value.expires_at, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Open until filled'))
 
 onMounted(async () => {
-  job.value = await community.fetchJob(route.params.slug)
-  if (job.value?.is_owner && session.isAuthenticated) {
-    const data = await community.fetchJobApplicants(job.value.id)
-    applicants.value = data.applicants || []
+  loading.value = true
+  try {
+    job.value = await community.fetchJob(route.params.slug)
+    if (job.value?.is_owner && session.isAuthenticated) {
+      const data = await community.fetchJobApplicants(job.value.id)
+      applicants.value = data.applicants || []
+    }
+  } finally {
+    loading.value = false
   }
 })
 

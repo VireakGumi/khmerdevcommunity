@@ -1,5 +1,37 @@
 <template>
   <q-page padding>
+    <template v-if="loading">
+      <div class="page-intro q-mb-lg">
+        <div>
+          <q-skeleton type="text" width="18%" />
+          <q-skeleton type="text" width="42%" class="q-mt-sm" />
+          <q-skeleton type="text" width="68%" class="q-mt-sm" />
+        </div>
+        <div class="page-actions">
+          <q-skeleton type="rect" width="132px" height="40px" />
+        </div>
+      </div>
+
+      <div class="row q-col-gutter-lg">
+        <div v-for="index in 2" :key="`settings-skeleton-${index}`" class="col-12 col-xl-6">
+          <div class="content-card q-pa-lg page-skeleton-panel">
+            <q-skeleton type="text" width="24%" />
+            <q-skeleton type="text" width="52%" class="q-mt-sm" />
+            <div class="q-mt-md">
+              <div v-for="item in 4" :key="`settings-row-${index}-${item}`" class="settings-toggle-row">
+                <div class="settings-toggle-row__copy">
+                  <q-skeleton type="text" width="34%" />
+                  <q-skeleton type="text" class="q-mt-xs" />
+                </div>
+                <q-skeleton type="QToggle" width="48px" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
     <div class="page-intro q-mb-lg">
       <div>
         <div class="section-label">Settings</div>
@@ -90,6 +122,7 @@
         </div>
       </div>
     </div>
+    </template>
   </q-page>
 </template>
 
@@ -100,6 +133,7 @@ import { useSessionStore } from 'src/stores/session-store'
 
 const $q = useQuasar()
 const session = useSessionStore()
+const loading = ref(false)
 const saving = ref(false)
 const form = reactive({
   notification_preferences: {
@@ -117,9 +151,14 @@ const form = reactive({
 })
 
 onMounted(async () => {
-  const data = await session.fetchSettings()
-  Object.assign(form.notification_preferences, data.notification_preferences || {})
-  Object.assign(form.privacy_settings, data.privacy_settings || {})
+  loading.value = true
+  try {
+    const data = await session.fetchSettings()
+    Object.assign(form.notification_preferences, data.notification_preferences || {})
+    Object.assign(form.privacy_settings, data.privacy_settings || {})
+  } finally {
+    loading.value = false
+  }
 })
 
 async function save() {

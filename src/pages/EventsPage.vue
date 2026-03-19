@@ -50,9 +50,9 @@
     </div>
 
     <div v-if="loading && !events.length" class="events-skeleton-stack">
-      <div v-for="index in 3" :key="`event-skeleton-${index}`" class="content-card q-pa-lg event-card">
+          <div v-for="index in 3" :key="`event-skeleton-${index}`" class="content-card q-pa-lg event-card">
         <div class="row q-col-gutter-lg">
-          <div class="col-auto"><q-skeleton type="rect" width="112px" height="112px" class="rounded-borders" /></div>
+          <div class="col-auto"><q-skeleton type="rect" width="168px" height="124px" class="rounded-borders" /></div>
           <div class="col-auto"><q-skeleton type="rect" width="92px" height="112px" class="rounded-borders" /></div>
           <div class="col">
             <q-skeleton type="text" width="34%" />
@@ -75,7 +75,7 @@
           <div v-for="event in visibleEvents" :key="event.id" class="content-card q-pa-lg event-card">
             <div class="event-card__top">
               <div v-if="event.thumbnail_url" class="event-card__thumb">
-                <q-img :src="event.thumbnail_url" ratio="1" loading="lazy" class="rounded-borders" />
+                <q-img :src="event.thumbnail_url" ratio="1.35" fit="cover" loading="lazy" class="rounded-borders" />
               </div>
               <div v-else class="event-card__thumb event-card__thumb--placeholder">
                 <q-icon name="event" size="32px" color="primary" />
@@ -388,4 +388,3 @@ async function publishEvent() {
   }
 }
 </script>
-

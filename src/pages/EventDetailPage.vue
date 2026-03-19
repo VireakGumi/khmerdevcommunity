@@ -1,5 +1,35 @@
 <template>
   <q-page padding>
+    <div v-if="loading" class="row q-col-gutter-lg">
+      <div class="col-12 col-xl-8">
+        <div class="content-card q-pa-lg page-skeleton-panel">
+          <q-skeleton square height="260px" class="rounded-borders q-mb-lg" />
+          <q-skeleton type="text" width="16%" />
+          <q-skeleton type="text" width="56%" class="q-mt-sm" />
+          <q-skeleton type="text" width="82%" class="q-mt-sm" />
+          <div class="row q-col-gutter-sm q-mt-md">
+            <div v-for="item in 2" :key="`event-detail-chip-${item}`" class="col-auto">
+              <q-skeleton type="QChip" width="88px" />
+            </div>
+          </div>
+          <q-skeleton type="text" class="q-mt-lg" />
+          <q-skeleton type="text" class="q-mt-sm" />
+          <q-skeleton type="text" width="84%" class="q-mt-xs" />
+        </div>
+      </div>
+      <div class="col-12 col-xl-4">
+        <div class="content-card q-pa-lg page-skeleton-panel">
+          <q-skeleton type="text" width="34%" />
+          <div class="utility-list q-mt-md">
+            <div v-for="item in 3" :key="`event-detail-side-${item}`" class="utility-card">
+              <q-skeleton type="text" width="34%" />
+              <q-skeleton type="text" width="66%" class="q-mt-sm" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="event" class="row q-col-gutter-lg">
       <div class="col-12 col-xl-8">
         <div class="content-card q-pa-lg">
@@ -48,9 +78,15 @@ import { formatDate } from 'src/utils/formatters'
 
 const route = useRoute()
 const event = ref(null)
+const loading = ref(false)
 
 onMounted(async () => {
-  const { data } = await api.get(`/events/${route.params.id}`)
-  event.value = data
+  loading.value = true
+  try {
+    const { data } = await api.get(`/events/${route.params.id}`)
+    event.value = data
+  } finally {
+    loading.value = false
+  }
 })
 </script>

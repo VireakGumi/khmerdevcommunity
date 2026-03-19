@@ -229,6 +229,11 @@ export const useCommunityStore = defineStore('community', {
       })
     },
 
+    async fetchPost(postId) {
+      const { data } = await api.get(`/feed/${postId}`)
+      return data
+    },
+
     async fetchNextFeedPage() {
       return this.fetchNextPage('feedList', '/feed', {
         params: { tab: this.feedPagination.tab },

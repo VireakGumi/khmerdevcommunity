@@ -109,14 +109,24 @@
               </div>
 
               <div class="feed-post-body q-mt-md">
-                <div class="card-title">{{ post.title }}</div>
+                <div class="card-title">
+                  <router-link :to="`/feed/${post.id}`" class="post-detail-link">{{ post.title }}</router-link>
+                </div>
                 <div class="text-body1 muted-text q-mt-sm">{{ post.excerpt }}</div>
                 <div v-if="post.media?.length" class="row q-col-gutter-sm q-mt-md feed-media-grid">
-                  <div v-for="(src, index) in post.media" :key="src" class="col-12" :class="post.media.length > 1 ? 'col-md-6' : ''">
+                  <div
+                    v-for="(src, index) in post.media"
+                    :key="src"
+                    class="col-12"
+                    :class="[
+                      post.media.length > 1 ? 'col-md-6' : '',
+                      post.media.length > 1 ? 'feed-media-grid__item--multi' : 'feed-media-grid__item--single',
+                    ]"
+                  >
                     <q-img
                       :src="src"
                       loading="lazy"
-                      ratio="1.4"
+                      fit="cover"
                       class="rounded-borders feed-media-thumb"
                       @click="openMediaViewer(post.media, index, post.title)"
                     >
@@ -155,7 +165,8 @@
                   :disable="!session.isAuthenticated"
                   @click="toggleBookmark(post.id)"
                 />
-                <q-btn flat no-caps color="grey-5" icon="chat_bubble_outline" label="Comment" />
+                <q-btn flat no-caps color="grey-5" icon="chat_bubble_outline" label="Comment" :to="`/feed/${post.id}`" />
+                <q-btn flat no-caps color="grey-5" icon="north_east" label="Open" :to="`/feed/${post.id}`" />
               </div>
 
               <q-separator spaced class="theme-separator" />

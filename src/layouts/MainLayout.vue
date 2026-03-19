@@ -24,25 +24,78 @@
     <template v-if="route.meta.mobileShell">
       <div class="mobile-frame">
         <div class="glass-panel mobile-device">
-          <div class="row items-center justify-between q-px-lg q-py-md" style="border-bottom: 1px solid var(--kdc-border)">
-            <div>
-              <div class="section-label">Mobile</div>
-              <div class="text-h6 text-weight-bold">{{ route.meta.title || route.name }}</div>
+          <div v-if="showMobileTopbar" class="mobile-shell-head">
+            <div class="mobile-shell-head__side">
+              <q-btn
+                v-if="route.name !== 'mobile-home'"
+                flat
+                round
+                dense
+                color="grey-5"
+                icon="arrow_back"
+                @click="router.push(mobileBackTarget)"
+              />
+              <q-btn
+                v-else
+                flat
+                round
+                dense
+                color="grey-5"
+                icon="desktop_windows"
+                @click="router.push('/feed')"
+              />
             </div>
-            <q-btn flat round dense color="grey-5" icon="north_east" @click="router.push('/feed')" />
+            <div class="mobile-shell-head__copy" :class="{ 'mobile-shell-head__copy--brand': route.name === 'mobile-home' }">
+              <div v-if="route.name === 'mobile-home'" class="mobile-shell-brand">
+                <img src="/img/logo-with-name.png" alt="khmerdevcommunity" class="mobile-shell-brand__image" />
+              </div>
+              <template v-else>
+                <div class="section-label">App</div>
+                <div class="text-subtitle1 text-weight-bold">{{ route.meta.title || route.name }}</div>
+              </template>
+            </div>
+            <div class="mobile-shell-head__side mobile-shell-head__side--end">
+              <q-btn flat round dense color="grey-5" icon="search" @click="router.push('/m/search')" />
+            </div>
           </div>
 
-          <q-page-container>
-            <router-view />
-          </q-page-container>
+          <div class="mobile-device__body">
+            <q-page-container class="mobile-page-container">
+              <router-view />
+            </q-page-container>
+          </div>
 
-          <div class="absolute-bottom q-pa-sm mobile-nav">
-            <div class="row items-center justify-around text-caption">
-              <div v-for="item in mobileLinks" :key="item.to" class="mobile-nav-item-wrap">
+          <div class="mobile-nav q-pa-sm">
+            <q-btn
+              unelevated
+              round
+              size="16px"
+              color="primary"
+              icon="edit"
+              class="mobile-fab"
+              @click="router.push('/m/post')"
+            />
+            <div class="row items-center justify-around text-caption mobile-nav__row">
+              <div v-for="item in mobilePrimaryLinks" :key="item.to" class="mobile-nav-item-wrap">
                 <q-btn
                   flat
                   no-caps
                   stack
+                  class="mobile-nav-btn"
+                  :label="item.label"
+                  :icon="item.icon"
+                  :to="item.to"
+                  :color="isActive(item.to) ? 'primary' : 'grey-5'"
+                />
+                <q-badge v-if="item.badge" color="primary" rounded floating>{{ item.badge }}</q-badge>
+              </div>
+              <div class="mobile-nav-spacer" aria-hidden="true"></div>
+              <div v-for="item in mobileSecondaryLinks" :key="item.to" class="mobile-nav-item-wrap">
+                <q-btn
+                  flat
+                  no-caps
+                  stack
+                  class="mobile-nav-btn"
                   :label="item.label"
                   :icon="item.icon"
                   :to="item.to"
@@ -83,8 +136,14 @@
 
     <template v-else>
       <q-page-container>
-        <div class="desktop-shell" :class="{ 'desktop-shell--chat-focused': route.meta.chatFocused }">
-          <aside v-if="!route.meta.chatFocused" class="glass-panel shell-panel gt-md">
+        <div
+          class="desktop-shell"
+          :class="{
+            'desktop-shell--chat-focused': route.meta.chatFocused,
+            'desktop-shell--drawer-mode': showSidebarDrawer,
+          }"
+        >
+            <aside v-if="!route.meta.chatFocused && !showSidebarDrawer" class="glass-panel shell-panel">
             <div class="shell-sidebar-scroll">
               <SidebarContent
                 :links="desktopLinks"
@@ -94,76 +153,31 @@
             </div>
           </aside>
 
-          <div class="shell-content">
-            <div class="glass-panel topbar-panel row items-center justify-between q-pa-md">
-              <div class="topbar-heading">
-                <div v-if="showSidebarDrawer" class="row items-center q-gutter-sm q-mb-sm">
+          <div class="shell-content" :class="{ 'shell-content--mobile-bottom-nav': showCompactWebHeader }">
+            <div class="glass-panel topbar-panel q-px-md q-py-sm">
+              <template v-if="showCompactWebHeader">
+                <div class="topbar-mobile-bar">
                   <q-btn flat round dense class="app-icon-btn" icon="menu" @click="sidebarOpen = true" />
-                  <div class="section-label">Navigate</div>
-                </div>
-                <div class="section-label">Khmer Dev Community</div>
-                <div class="text-h5 text-weight-bold q-mt-xs">{{ route.meta.title || 'Build with the community' }}</div>
-              </div>
-              <div class="row items-center q-gutter-sm topbar-actions">
-                <template v-if="session.isAuthenticated">
-                  <div class="topbar-utility gt-sm">Write | Build | Connect</div>
-                  <q-input
+                  <div class="topbar-mobile-brand">
+                    <img src="/img/logo.png" alt="khmerdevcommunity" class="topbar-mobile-brand__logo" />
+                  </div>
+                  <q-btn
+                    v-if="session.isAuthenticated"
+                    flat
+                    round
                     dense
-                    outlined
-                    class="input-surface nav-search"
-                    v-model="searchText"
-                    placeholder="Search posts, builders, projects, jobs"
-                    @keyup.enter="submitSearch"
+                    class="app-icon-btn"
+                    icon="person"
                   >
-                    <template #prepend>
-                      <q-icon name="search" />
-                    </template>
-                  </q-input>
-                  <q-btn flat round class="app-icon-btn" icon="add" @click="router.push('/post')" />
-                  <q-btn flat round class="app-icon-btn" icon="notifications" @click="router.push('/notifications')" />
-                  <q-btn flat round class="app-icon-btn" icon="mail" @click="router.push('/messages')">
-                    <q-badge v-if="chat.unreadCount" color="primary" rounded floating>{{ chat.unreadCount }}</q-badge>
-                  </q-btn>
-                  <q-btn flat round class="theme-toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" @click="toggleTheme" />
-                  <q-btn flat no-caps class="profile-trigger">
-                    <q-avatar size="34px" color="primary" text-color="white">
-                      <img v-if="session.user?.avatar_url" :src="session.user.avatar_url" :alt="session.user?.name || 'Profile photo'" />
-                      <span v-else>{{ session.user?.name?.charAt(0) }}</span>
-                    </q-avatar>
-                    <div class="profile-meta">
-                      <strong>{{ session.user?.name }}</strong>
-                      <span>@{{ session.user?.username }}</span>
-                    </div>
-                    <q-icon name="expand_more" />
                     <q-menu class="glass-panel panel-card" anchor="bottom right" self="top right">
                       <q-list style="min-width: 220px">
                         <q-item clickable to="/portfolio" v-close-popup>
                           <q-item-section avatar><q-icon name="account_box" /></q-item-section>
                           <q-item-section>My portfolio</q-item-section>
                         </q-item>
-                        <q-item clickable to="/developers" v-close-popup>
-                          <q-item-section avatar><q-icon name="groups" /></q-item-section>
-                          <q-item-section>Developer profiles</q-item-section>
-                        </q-item>
-                        <q-item clickable to="/notifications" v-close-popup>
-                          <q-item-section avatar><q-icon name="notifications" /></q-item-section>
-                          <q-item-section>Notifications</q-item-section>
-                        </q-item>
-                        <q-item clickable to="/saved" v-close-popup>
-                          <q-item-section avatar><q-icon name="bookmark" /></q-item-section>
-                          <q-item-section>Saved</q-item-section>
-                        </q-item>
-                        <q-item clickable to="/messages" v-close-popup>
-                          <q-item-section avatar><q-icon name="mail" /></q-item-section>
-                          <q-item-section>Messages</q-item-section>
-                        </q-item>
                         <q-item clickable to="/settings" v-close-popup>
                           <q-item-section avatar><q-icon name="settings" /></q-item-section>
                           <q-item-section>Settings</q-item-section>
-                        </q-item>
-                        <q-item clickable to="/m" v-close-popup>
-                          <q-item-section avatar><q-icon name="phone_iphone" /></q-item-section>
-                          <q-item-section>Mobile app</q-item-section>
                         </q-item>
                         <q-separator class="theme-separator" />
                         <q-item clickable v-close-popup @click="handleLogout">
@@ -173,17 +187,146 @@
                       </q-list>
                     </q-menu>
                   </q-btn>
-                </template>
-                <template v-else>
-                  <q-btn flat round class="theme-toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" @click="toggleTheme" />
-                  <q-btn flat no-caps class="ghost-btn" color="secondary" icon="phone_iphone" label="Mobile" to="/m" />
-                  <q-btn flat no-caps class="ghost-btn" color="secondary" label="Login" to="/login" />
-                  <q-btn color="primary" no-caps label="Register" to="/register" />
-                </template>
-              </div>
+                  <q-btn
+                    v-else
+                    flat
+                    round
+                    dense
+                    class="theme-toggle"
+                    :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+                    @click="toggleTheme"
+                  />
+                </div>
+                <div class="topbar-mobile-title">{{ route.meta.title || 'Build with the community' }}</div>
+                <div class="topbar-mobile-search">
+                  <q-input
+                    dense
+                    outlined
+                    class="input-surface nav-search nav-search--mobile"
+                    v-model="searchText"
+                    placeholder="Search posts, builders, projects, jobs"
+                    @keyup.enter="submitSearch"
+                  >
+                    <template #prepend>
+                      <q-icon name="search" />
+                    </template>
+                  </q-input>
+                </div>
+              </template>
+
+              <template v-else>
+                <div class="topbar-main">
+                  <div class="topbar-heading">
+                    <div v-if="showSidebarDrawer" class="row items-center q-gutter-sm q-mb-sm">
+                      <q-btn flat round dense class="app-icon-btn" icon="menu" @click="sidebarOpen = true" />
+                      <div class="section-label">Navigate</div>
+                    </div>
+                    <div class="topbar-brand">
+                      <img src="/img/logo.png" alt="khmerdevcommunity" class="topbar-brand__logo" />
+                      <div class="section-label">Khmer Dev Community</div>
+                    </div>
+                    <div class="text-h5 text-weight-bold q-mt-xs">{{ route.meta.title || 'Build with the community' }}</div>
+                  </div>
+
+                  <div class="row items-center q-gutter-sm topbar-actions">
+                    <template v-if="session.isAuthenticated">
+                      <div class="topbar-utility">Write | Build | Connect</div>
+                      <q-input
+                        dense
+                        outlined
+                        class="input-surface nav-search"
+                        v-model="searchText"
+                        placeholder="Search posts, builders, projects, jobs"
+                        @keyup.enter="submitSearch"
+                      >
+                        <template #prepend>
+                          <q-icon name="search" />
+                        </template>
+                      </q-input>
+                      <q-btn flat round class="app-icon-btn" icon="add" @click="router.push('/post')" />
+                      <q-btn flat round class="app-icon-btn" icon="notifications" @click="router.push('/notifications')" />
+                      <q-btn flat round class="app-icon-btn" icon="mail" @click="router.push('/messages')">
+                        <q-badge v-if="chat.unreadCount" color="primary" rounded floating>{{ chat.unreadCount }}</q-badge>
+                      </q-btn>
+                      <q-btn flat round class="theme-toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" @click="toggleTheme" />
+                      <q-btn flat no-caps class="profile-trigger">
+                        <q-avatar size="34px" color="primary" text-color="white">
+                          <img v-if="session.user?.avatar_url" :src="session.user.avatar_url" :alt="session.user?.name || 'Profile photo'" />
+                          <span v-else>{{ session.user?.name?.charAt(0) }}</span>
+                        </q-avatar>
+                        <div class="profile-meta">
+                          <strong>{{ session.user?.name }}</strong>
+                          <span>@{{ session.user?.username }}</span>
+                        </div>
+                        <q-icon name="expand_more" />
+                        <q-menu class="glass-panel panel-card" anchor="bottom right" self="top right">
+                          <q-list style="min-width: 220px">
+                            <q-item clickable to="/portfolio" v-close-popup>
+                              <q-item-section avatar><q-icon name="account_box" /></q-item-section>
+                              <q-item-section>My portfolio</q-item-section>
+                            </q-item>
+                            <q-item clickable to="/developers" v-close-popup>
+                              <q-item-section avatar><q-icon name="groups" /></q-item-section>
+                              <q-item-section>Developer profiles</q-item-section>
+                            </q-item>
+                            <q-item clickable to="/notifications" v-close-popup>
+                              <q-item-section avatar><q-icon name="notifications" /></q-item-section>
+                              <q-item-section>Notifications</q-item-section>
+                            </q-item>
+                            <q-item clickable to="/saved" v-close-popup>
+                              <q-item-section avatar><q-icon name="bookmark" /></q-item-section>
+                              <q-item-section>Saved</q-item-section>
+                            </q-item>
+                            <q-item clickable to="/messages" v-close-popup>
+                              <q-item-section avatar><q-icon name="mail" /></q-item-section>
+                              <q-item-section>Messages</q-item-section>
+                            </q-item>
+                            <q-item clickable to="/settings" v-close-popup>
+                              <q-item-section avatar><q-icon name="settings" /></q-item-section>
+                              <q-item-section>Settings</q-item-section>
+                            </q-item>
+                            <q-item clickable to="/m" v-close-popup>
+                              <q-item-section avatar><q-icon name="phone_iphone" /></q-item-section>
+                              <q-item-section>Mobile app</q-item-section>
+                            </q-item>
+                            <q-separator class="theme-separator" />
+                            <q-item clickable v-close-popup @click="handleLogout">
+                              <q-item-section avatar><q-icon name="logout" /></q-item-section>
+                              <q-item-section>Logout</q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-menu>
+                      </q-btn>
+                    </template>
+                    <template v-else>
+                      <q-btn flat round class="theme-toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" @click="toggleTheme" />
+                      <q-btn flat no-caps class="ghost-btn" color="secondary" icon="phone_iphone" label="Mobile" to="/m" />
+                      <q-btn flat no-caps class="ghost-btn" color="secondary" label="Login" to="/login" />
+                      <q-btn color="primary" no-caps label="Register" to="/register" />
+                    </template>
+                  </div>
+                </div>
+              </template>
             </div>
 
             <router-view />
+
+            <div v-if="showCompactWebHeader" class="glass-panel web-mobile-bottom-nav">
+              <q-btn
+                v-for="item in mobileWebLinks"
+                :key="item.to"
+                flat
+                no-caps
+                stack
+                class="web-mobile-bottom-nav__btn"
+                :label="item.label"
+                :icon="item.icon"
+                :to="item.to"
+                :color="isActive(item.to) ? 'primary' : 'grey-5'"
+              >
+                <q-badge v-if="item.badge" color="primary" rounded floating>{{ item.badge }}</q-badge>
+              </q-btn>
+            </div>
           </div>
         </div>
       </q-page-container>
@@ -219,19 +362,93 @@ const desktopLinks = computed(() => [
   ...(session.isAuthenticated ? [{ to: '/portfolio', label: 'Portfolio', icon: 'account_box' }] : []),
 ])
 
-const mobileLinks = computed(() => [
+const mobilePrimaryLinks = computed(() => [
+  { to: '/m', label: 'Home', icon: 'home' },
   { to: '/m/feed', label: 'Feed', icon: 'rss_feed' },
-  { to: '/m/post', label: 'Post', icon: 'edit_square' },
-  { to: '/m/notifications', label: 'Alerts', icon: 'notifications' },
-  { to: '/m/profile', label: 'Profile', icon: 'person' },
-  { to: '/m/messages', label: 'Inbox', icon: 'mail', badge: chat.unreadCount || null },
 ])
+
+const mobileSecondaryLinks = computed(() => [
+  { to: '/m/messages', label: 'Inbox', icon: 'mail', badge: chat.unreadCount || null },
+  { to: '/m/profile', label: 'Profile', icon: 'person' },
+])
+
+const mobileWebLinks = computed(() =>
+  session.isAuthenticated
+    ? [
+        { to: '/', label: 'Home', icon: 'home' },
+        { to: '/feed', label: 'Feed', icon: 'dynamic_feed' },
+        { to: '/search', label: 'Search', icon: 'search' },
+        { to: '/messages', label: 'Inbox', icon: 'mail', badge: chat.unreadCount || null },
+        { to: '/portfolio', label: 'Profile', icon: 'person' },
+      ]
+    : [
+        { to: '/', label: 'Home', icon: 'home' },
+        { to: '/feed', label: 'Feed', icon: 'dynamic_feed' },
+        { to: '/search', label: 'Search', icon: 'search' },
+        { to: '/login', label: 'Login', icon: 'login' },
+        { to: '/register', label: 'Join', icon: 'person_add' },
+      ],
+)
+
+const showCompactWebHeader = computed(() => $q.screen.lt.md)
+
+const showMobileTopbar = computed(() => ![
+  'mobile-home',
+  'mobile-feed',
+  'mobile-messages',
+  'mobile-profile',
+].includes(route.name))
 
 const showSidebarDrawer = computed(() => !route.meta.chatFocused && $q.screen.lt.lg)
 
 function isActive(target) {
-  return route.path === target
+  return route.path === target || route.path.startsWith(`${target}/`)
 }
+
+const mobileBackTarget = computed(() => {
+  if (
+    route.name === 'mobile-feed' ||
+    route.name === 'mobile-search' ||
+    route.name === 'mobile-profile' ||
+    route.name === 'mobile-notifications'
+  ) {
+    return '/m'
+  }
+
+  if (route.name === 'mobile-feed-detail') {
+    return '/m/feed'
+  }
+
+  if (route.name === 'mobile-portfolio' || route.name === 'mobile-settings' || route.name === 'mobile-saved') {
+    return '/m/profile'
+  }
+
+  if (route.name === 'mobile-projects') {
+    return '/m'
+  }
+
+  if (route.name === 'mobile-developers') {
+    return '/m'
+  }
+
+  if (route.name === 'mobile-job-detail') {
+    return '/m/jobs'
+  }
+
+  if (route.name === 'mobile-event-detail') {
+    return '/m/events'
+  }
+
+  if (route.name === 'mobile-public-portfolio') {
+    return '/m/developers'
+  }
+
+  if (route.name === 'mobile-message-thread') {
+    return '/m/messages'
+  }
+
+  return '/m'
+})
 
 function toggleTheme() {
   const next = !$q.dark.isActive
