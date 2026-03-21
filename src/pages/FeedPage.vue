@@ -139,34 +139,36 @@
               </div>
 
               <div class="feed-post-stats q-mt-md">
-                <div class="card-meta">{{ post.likes_count }} likes</div>
-                <div class="card-meta">{{ post.comments_count }} comments</div>
-                <div class="card-meta">{{ post.reading_time }} min read</div>
+                <div class="card-meta feed-post-stat">{{ post.likes_count }} likes</div>
+                <div class="card-meta feed-post-stat">{{ post.comments_count }} comments</div>
+                <div class="card-meta feed-post-stat">{{ post.reading_time }} min read</div>
               </div>
 
               <div class="feed-post-actions q-mt-md">
                 <q-btn
+                  class="feed-post-action-btn"
                   flat
                   no-caps
                   :color="post.is_liked ? 'primary' : 'grey-5'"
                   :icon="post.is_liked ? 'favorite' : 'favorite_border'"
-                  :label="post.is_liked ? 'Liked' : 'Like'"
+                  :label="$q.screen.lt.sm ? '' : (post.is_liked ? 'Liked' : 'Like')"
                   :loading="Boolean(likeLoading[post.id])"
                   :disable="!session.isAuthenticated"
                   @click="toggleLike(post.id)"
                 />
                 <q-btn
+                  class="feed-post-action-btn"
                   flat
                   no-caps
                   :color="post.is_saved ? 'secondary' : 'grey-5'"
                   :icon="post.is_saved ? 'bookmark' : 'bookmark_border'"
-                  :label="post.is_saved ? 'Saved' : 'Save'"
+                  :label="$q.screen.lt.sm ? '' : (post.is_saved ? 'Saved' : 'Save')"
                   :loading="Boolean(bookmarkLoading[post.id])"
                   :disable="!session.isAuthenticated"
                   @click="toggleBookmark(post.id)"
                 />
-                <q-btn flat no-caps color="grey-5" icon="chat_bubble_outline" label="Comment" :to="`/feed/${post.id}`" />
-                <q-btn flat no-caps color="grey-5" icon="north_east" label="Open" :to="`/feed/${post.id}`" />
+                <q-btn class="feed-post-action-btn" flat no-caps color="grey-5" icon="chat_bubble_outline" :label="$q.screen.lt.sm ? '' : 'Comment'" :to="`/feed/${post.id}`" />
+                <q-btn class="feed-post-action-btn" flat no-caps color="grey-5" icon="north_east" :label="$q.screen.lt.sm ? '' : 'Open'" :to="`/feed/${post.id}`" />
               </div>
 
               <q-separator spaced class="theme-separator" />

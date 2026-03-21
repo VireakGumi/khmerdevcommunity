@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md q-pb-xl">
+  <q-page class="mobile-messages-page q-pa-sm" :class="{ 'mobile-messages-page--thread': !!activeConversation }">
     <template v-if="activeConversation">
       <conversation-pane
         mobile
@@ -14,16 +14,84 @@
       />
     </template>
     <template v-else>
-      <conversation-list
-        :conversations="chat.conversations"
-        :active-conversation-id="chat.activeConversationId"
-        :loading="chat.loadingList"
-        :search="chat.search"
-        @select="openConversation"
-        @update:search="handleSearch"
-      />
-      <div class="q-mt-md">
-        <empty-conversation-state :developers="developerSuggestions" @start="startConversation" />
+      <div class="mobile-inbox-shell mobile-inbox-shell--app">
+        <section class="mobile-inbox-panel">
+          <div class="mobile-inbox-panel__head">
+            <div>
+              <div class="mobile-inbox-panel__eyebrow">Inbox</div>
+              <div class="mobile-inbox-panel__title">Messages</div>
+            </div>
+            <q-btn
+              flat
+              round
+              dense
+              icon="edit"
+              class="mobile-inbox-panel__compose"
+              @click="developerSuggestions[0] && startConversation(developerSuggestions[0].id)"
+            />
+          </div>
+
+          <q-input
+            :model-value="chat.search"
+            dense
+            outlined
+            class="input-surface mobile-inbox-panel__search"
+            placeholder="Search"
+            @update:model-value="handleSearch"
+          >
+            <template #prepend>
+              <q-icon name="search" />
+            </template>
+          </q-input>
+
+          <div class="mobile-inbox-panel__list">
+            <div class="mobile-inbox-panel__stats">
+              <span>{{ chat.conversations.length }} chats</span>
+              <span>{{ chat.unreadCount }} unread</span>
+            </div>
+
+            <div v-if="chat.loadingList" class="empty-state-card mobile-inbox-panel__empty">
+              <q-spinner color="white" size="24px" />
+              <div class="text-body2 q-mt-sm">Loading conversations...</div>
+            </div>
+
+            <template v-else-if="chat.conversations.length">
+              <conversation-list-item
+                v-for="conversation in chat.conversations"
+                :key="conversation.id"
+                :conversation="conversation"
+                :active="conversation.id === chat.activeConversationId"
+                @select="openConversation"
+              />
+            </template>
+
+            <div v-else class="empty-state-card mobile-inbox-panel__empty">
+              <q-icon name="forum" size="26px" color="white" />
+              <div class="text-subtitle2 text-weight-bold q-mt-sm">No conversations yet</div>
+              <div class="text-body2 q-mt-xs">Start a new thread with another builder.</div>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="developerSuggestions.length" class="mobile-inbox-quickstart">
+          <div class="mobile-inbox-quickstart__label">Quick start</div>
+          <div class="mobile-inbox-quickstart__row">
+            <q-btn
+              v-for="developer in developerSuggestions"
+              :key="developer.id"
+              flat
+              no-caps
+              round
+              class="mobile-inbox-quickstart__avatar"
+              @click="startConversation(developer.id)"
+            >
+              <q-avatar size="40px" color="primary" text-color="white">
+                <img v-if="developer.avatar_url" :src="developer.avatar_url" :alt="developer.name" />
+                <span v-else>{{ developer.name?.charAt(0) }}</span>
+              </q-avatar>
+            </q-btn>
+          </div>
+        </section>
       </div>
     </template>
 
@@ -50,9 +118,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import ChatProfilePanel from 'src/components/chat/ChatProfilePanel.vue'
-import ConversationList from 'src/components/chat/ConversationList.vue'
+import ConversationListItem from 'src/components/chat/ConversationListItem.vue'
 import ConversationPane from 'src/components/chat/ConversationPane.vue'
-import EmptyConversationState from 'src/components/chat/EmptyConversationState.vue'
 import { useChatStore } from 'src/stores/chat-store'
 import { useCommunityStore } from 'src/stores/community-store'
 

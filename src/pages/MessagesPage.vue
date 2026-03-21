@@ -2,7 +2,7 @@
   <q-page padding class="chat-page">
     <div class="chat-page-shell">
       <div class="chat-workspace">
-        <aside class="chat-sidebar">
+        <aside v-if="!isCompactScreen || !chat.activeConversation" class="chat-sidebar">
           <div class="chat-sidebar__toolbar">
             <div>
               <div class="section-label">Inbox</div>
@@ -48,7 +48,7 @@
           />
         </aside>
 
-        <div class="chat-thread-column">
+        <div v-if="!isCompactScreen || chat.activeConversation" class="chat-thread-column">
           <conversation-pane
             v-if="chat.activeConversation"
             :conversation="chat.activeConversation"
@@ -56,8 +56,10 @@
             :loading="chat.loadingConversation"
             :sending="chat.sending"
             :details-open="detailsOpen"
+            :mobile="isCompactScreen"
             :focus-search-key="conversationSearchKey"
             @send="sendMessage"
+            @back="closeConversation"
             @toggle-details="detailsOpen = !detailsOpen"
           />
 
@@ -116,6 +118,7 @@ const detailsOpen = ref(false)
 const mutedConversation = ref(false)
 const conversationSearchKey = ref(0)
 
+const isCompactScreen = computed(() => $q.screen.lt.md)
 const developerSuggestions = computed(() => community.developers.slice(0, 6))
 const activePartner = computed(() => {
   const partner = chat.activeConversation?.partner
@@ -156,6 +159,13 @@ async function openConversation(conversationId) {
   } catch (error) {
     $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to open conversation' })
   }
+}
+
+async function closeConversation() {
+  detailsOpen.value = false
+  chat.activeConversationId = null
+  chat.bindActiveConversationChannel()
+  await router.replace({ query: {} })
 }
 
 async function startConversation(recipientId) {
@@ -207,6 +217,12 @@ async function hydrateFromRoute() {
     return
   }
 
+  if (isCompactScreen.value) {
+    chat.activeConversationId = null
+    chat.bindActiveConversationChannel()
+    return
+  }
+
   if (chat.conversations[0]) {
     await openConversation(chat.conversations[0].id)
   }
@@ -223,6 +239,21 @@ watch(
       await hydrateFromRoute()
     } catch (error) {
       $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to sync conversation route' })
+    }
+  },
+)
+
+watch(
+  () => isCompactScreen.value,
+  async (compact, previous) => {
+    if (compact === previous) {
+      return
+    }
+
+    try {
+      await hydrateFromRoute()
+    } catch (error) {
+      $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to update conversation layout' })
     }
   },
 )

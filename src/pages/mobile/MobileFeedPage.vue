@@ -77,7 +77,7 @@
             <span>{{ post.likes_count }} likes</span>
             <span>{{ post.comments_count }} replies</span>
           </div>
-          <q-btn flat dense no-caps color="primary" icon="north_east" label="Open" :to="`/m/feed/${post.id}`" />
+          <q-btn class="mobile-feed-open-btn" flat dense no-caps color="primary" icon="north_east" :label="$q.screen.lt.sm ? '' : 'Open'" :to="`/m/feed/${post.id}`" />
         </div>
       </article>
     </div>
@@ -86,9 +86,11 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import { useCommunityStore } from 'src/stores/community-store'
 import { formatRelative } from 'src/utils/formatters'
 
+const $q = useQuasar()
 const community = useCommunityStore()
 const activeTab = ref('for-you')
 const loading = ref(false)

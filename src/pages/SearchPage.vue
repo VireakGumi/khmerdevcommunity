@@ -217,7 +217,7 @@ function resultTitle(item) {
 }
 
 function resultSubtitle(item) {
-  if (item.__type === 'developers') return `@${item.username} • ${item.followers_count || 0} followers`
+  if (item.__type === 'developers') return `@${item.username} â€¢ ${item.followers_count || 0} followers`
   if (item.__type === 'jobs') return item.company_name
   if (item.__type === 'projects') return item.tagline
   return item.topic || item.format || ''
@@ -245,7 +245,10 @@ function resultLink(item) {
 }
 
 async function submitSearch() {
-  await router.push({ path: '/search', query: { q: query.value } })
+  await router.push({
+    path: route.meta.mobileShell ? '/m/search' : '/search',
+    query: { q: query.value },
+  })
 }
 </script>
 

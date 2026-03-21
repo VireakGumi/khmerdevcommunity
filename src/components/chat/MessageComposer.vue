@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-composer">
+  <div class="chat-composer" :class="{ 'chat-composer--mobile': mobile }">
     <div class="chat-composer__field">
       <div v-if="replyMessage" class="chat-composer__reply">
         <div class="chat-composer__reply-copy">
@@ -19,7 +19,7 @@
         :disable="isSubmitting || loading"
         @keydown.enter.exact.prevent="submit"
       />
-      <div class="chat-composer__footer">
+      <div v-if="!mobile" class="chat-composer__footer">
         <div class="chat-composer__hint">Enter to send. Shift + Enter for a new line.</div>
         <div class="chat-composer__tools">
           <q-btn flat round dense icon="code" color="grey-5" @click="insertCodeBlock">
@@ -31,7 +31,7 @@
         </div>
       </div>
     </div>
-    <q-btn round color="primary" icon="send" :loading="loading" :disable="!draft.trim() || isSubmitting || loading" @click="submit" />
+    <q-btn :round="!mobile" color="primary" icon="send" :loading="loading" :disable="!draft.trim() || isSubmitting || loading" @click="submit" />
   </div>
 </template>
 
@@ -40,6 +40,10 @@ import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   loading: {
+    type: Boolean,
+    default: false,
+  },
+  mobile: {
     type: Boolean,
     default: false,
   },

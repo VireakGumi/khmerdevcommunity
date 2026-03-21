@@ -1,5 +1,5 @@
 <template>
-  <section v-if="conversation" class="content-card chat-pane-card">
+  <section v-if="conversation" class="content-card chat-pane-card" :class="{ 'chat-pane-card--mobile': mobile }">
     <div class="chat-pane-head">
       <div class="chat-pane-identity">
         <div v-if="mobile" class="chat-pane-back">
@@ -12,25 +12,45 @@
         <div class="chat-pane-copy">
           <div class="chat-pane-topline">
             <div class="text-subtitle1 text-weight-bold">{{ conversation.partner?.name || 'Unknown developer' }}</div>
-            <span class="chat-pane-status">Direct thread</span>
+            <span v-if="!mobile" class="chat-pane-status">Direct thread</span>
           </div>
           <div class="card-meta">@{{ conversation.partner?.username || 'unknown' }}</div>
           <!-- <div v-if="conversation.partner?.headline" class="chat-pane-headline">{{ conversation.partner.headline }}</div> -->
         </div>
       </div>
       <div class="chat-pane-actions">
-        <q-btn flat round dense class="chat-pane-action-btn" icon="search" color="grey-5" @click="toggleSearch">
+        <q-btn v-if="!mobile" flat round dense class="chat-pane-action-btn" icon="search" color="grey-5" @click="toggleSearch">
           <q-tooltip>Search in conversation</q-tooltip>
         </q-btn>
         <q-btn flat round dense class="chat-pane-action-btn" icon="phone" color="primary" />
         <q-btn flat round dense class="chat-pane-action-btn" :icon="detailsOpen ? 'dock_to_right' : 'info'" color="grey-5" @click="$emit('toggle-details')" />
-        <q-btn flat no-caps color="secondary" class="chat-pane-profile-btn" icon="person" :to="conversation.partner ? `/u/${conversation.partner.username}` : '/developers'">
+        <q-btn
+          v-if="mobile"
+          flat
+          round
+          dense
+          class="chat-pane-action-btn"
+          icon="person"
+          color="secondary"
+          :to="conversation.partner ? `/m/u/${conversation.partner.username}` : '/m/developers'"
+        >
+          <q-tooltip>Profile</q-tooltip>
+        </q-btn>
+        <q-btn
+          v-else
+          flat
+          no-caps
+          color="secondary"
+          class="chat-pane-profile-btn"
+          icon="person"
+          :to="conversation.partner ? `/u/${conversation.partner.username}` : '/developers'"
+        >
           Profile
         </q-btn>
       </div>
     </div>
 
-    <div class="chat-pane-banner">
+    <div v-if="!mobile" class="chat-pane-banner">
       <span class="chat-pane-banner__dot" />
       Keep the thread focused on feedback, project updates, and quick follow-ups.
     </div>
@@ -100,6 +120,7 @@
     </div>
 
     <message-composer
+      :mobile="mobile"
       :loading="sending"
       :reply-message="replyMessage"
       @send="forwardMessage"

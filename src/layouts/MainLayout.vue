@@ -24,85 +24,136 @@
     <template v-if="route.meta.mobileShell">
       <div class="mobile-frame">
         <div class="glass-panel mobile-device">
-          <div v-if="showMobileTopbar" class="mobile-shell-head">
-            <div class="mobile-shell-head__side">
+          <div v-if="showMobileAppTopbar" class="glass-panel topbar-panel topbar-panel--app-mobile q-px-md q-py-sm">
+            <div class="topbar-mobile-bar">
               <q-btn
-                v-if="route.name !== 'mobile-home'"
+                v-if="showMobileAppMenu"
                 flat
                 round
                 dense
-                color="grey-5"
-                icon="arrow_back"
-                @click="router.push(mobileBackTarget)"
+                class="app-icon-btn"
+                icon="menu"
+                @click="sidebarOpen = true"
               />
               <q-btn
                 v-else
                 flat
                 round
                 dense
-                color="grey-5"
-                icon="desktop_windows"
-                @click="router.push('/feed')"
+                class="app-icon-btn"
+                icon="arrow_back"
+                @click="router.push(mobileBackTarget)"
+              />
+
+              <div class="topbar-mobile-brand">
+                <img src="/img/logo.png" alt="khmerdevcommunity" class="topbar-mobile-brand__logo" />
+              </div>
+
+              <q-btn
+                v-if="session.isAuthenticated"
+                flat
+                round
+                dense
+                class="app-icon-btn"
+                icon="person"
+              >
+                <q-menu class="glass-panel panel-card" anchor="bottom right" self="top right">
+                  <q-list style="min-width: 220px">
+                    <q-item clickable to="/m/profile" v-close-popup>
+                      <q-item-section avatar><q-icon name="person" /></q-item-section>
+                      <q-item-section>Profile</q-item-section>
+                    </q-item>
+                    <q-item clickable to="/m/portfolio" v-close-popup>
+                      <q-item-section avatar><q-icon name="account_box" /></q-item-section>
+                      <q-item-section>Portfolio</q-item-section>
+                    </q-item>
+                    <q-item clickable to="/m/settings" v-close-popup>
+                      <q-item-section avatar><q-icon name="settings" /></q-item-section>
+                      <q-item-section>Settings</q-item-section>
+                    </q-item>
+                    <q-separator class="theme-separator" />
+                    <q-item clickable v-close-popup @click="handleLogout">
+                      <q-item-section avatar><q-icon name="logout" /></q-item-section>
+                      <q-item-section>Logout</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+              <q-btn
+                v-else
+                flat
+                round
+                dense
+                class="theme-toggle"
+                :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+                @click="toggleTheme"
               />
             </div>
-            <div class="mobile-shell-head__copy" :class="{ 'mobile-shell-head__copy--brand': route.name === 'mobile-home' }">
-              <div v-if="route.name === 'mobile-home'" class="mobile-shell-brand">
-                <img src="/img/logo-with-name.png" alt="khmerdevcommunity" class="mobile-shell-brand__image" />
-              </div>
-              <template v-else>
-                <div class="section-label">App</div>
-                <div class="text-subtitle1 text-weight-bold">{{ route.meta.title || route.name }}</div>
-              </template>
+
+            <div class="topbar-mobile-title">
+              {{ route.name === 'mobile-home' ? 'Home' : route.meta.title || route.name }}
             </div>
-            <div class="mobile-shell-head__side mobile-shell-head__side--end">
-              <q-btn flat round dense color="grey-5" icon="search" @click="router.push('/m/search')" />
+
+            <div class="topbar-mobile-search">
+              <q-input
+                dense
+                outlined
+                class="input-surface nav-search nav-search--mobile"
+                v-model="searchText"
+                placeholder="Search posts, builders, projects, jobs"
+                @keyup.enter="submitSearch"
+              >
+                <template #prepend>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
             </div>
           </div>
 
           <div class="mobile-device__body">
-            <q-page-container class="mobile-page-container">
+            <q-page-container class="mobile-page-container" :class="{ 'mobile-page-container--no-bottom-nav': !showMobileAppBottomNav }">
               <router-view />
             </q-page-container>
           </div>
+        </div>
 
-          <div class="mobile-nav q-pa-sm">
-            <q-btn
-              unelevated
-              round
-              size="16px"
-              color="primary"
-              icon="edit"
-              class="mobile-fab"
-              @click="router.push('/m/post')"
-            />
-            <div class="row items-center justify-around text-caption mobile-nav__row">
-              <div v-for="item in mobilePrimaryLinks" :key="item.to" class="mobile-nav-item-wrap">
-                <q-btn
-                  flat
-                  no-caps
-                  stack
-                  class="mobile-nav-btn"
-                  :label="item.label"
-                  :icon="item.icon"
-                  :to="item.to"
-                  :color="isActive(item.to) ? 'primary' : 'grey-5'"
-                />
-                <q-badge v-if="item.badge" color="primary" rounded floating>{{ item.badge }}</q-badge>
-              </div>
-              <div class="mobile-nav-spacer" aria-hidden="true"></div>
-              <div v-for="item in mobileSecondaryLinks" :key="item.to" class="mobile-nav-item-wrap">
-                <q-btn
-                  flat
-                  no-caps
-                  stack
-                  class="mobile-nav-btn"
-                  :label="item.label"
-                  :icon="item.icon"
-                  :to="item.to"
-                  :color="isActive(item.to) ? 'primary' : 'grey-5'"
-                />
-                <q-badge v-if="item.badge" color="primary" rounded floating>{{ item.badge }}</q-badge>
-              </div>
+        <div v-if="showMobileAppBottomNav" class="mobile-nav q-pa-sm">
+          <q-btn
+            unelevated
+            round
+            size="16px"
+            color="primary"
+            icon="edit"
+            class="mobile-fab"
+            @click="router.push('/m/post')"
+          />
+          <div class="row items-center justify-around text-caption mobile-nav__row">
+            <div v-for="item in mobileAppPrimaryLinks" :key="item.to" class="mobile-nav-item-wrap">
+              <q-btn
+                flat
+                no-caps
+                stack
+                class="mobile-nav-btn"
+                :label="item.label"
+                :icon="item.icon"
+                :to="item.to"
+                :color="isActive(item.to) ? 'primary' : 'grey-5'"
+              />
+              <q-badge v-if="item.badge" color="primary" rounded floating>{{ item.badge }}</q-badge>
+            </div>
+            <div class="mobile-nav-spacer" aria-hidden="true"></div>
+            <div v-for="item in mobileAppSecondaryLinks" :key="item.to" class="mobile-nav-item-wrap">
+              <q-btn
+                flat
+                no-caps
+                stack
+                class="mobile-nav-btn"
+                :label="item.label"
+                :icon="item.icon"
+                :to="item.to"
+                :color="isActive(item.to) ? 'primary' : 'grey-5'"
+              />
+              <q-badge v-if="item.badge" color="primary" rounded floating>{{ item.badge }}</q-badge>
             </div>
           </div>
         </div>
@@ -362,12 +413,12 @@ const desktopLinks = computed(() => [
   ...(session.isAuthenticated ? [{ to: '/portfolio', label: 'Portfolio', icon: 'account_box' }] : []),
 ])
 
-const mobilePrimaryLinks = computed(() => [
+const mobileAppPrimaryLinks = computed(() => [
   { to: '/m', label: 'Home', icon: 'home' },
   { to: '/m/feed', label: 'Feed', icon: 'rss_feed' },
 ])
 
-const mobileSecondaryLinks = computed(() => [
+const mobileAppSecondaryLinks = computed(() => [
   { to: '/m/messages', label: 'Inbox', icon: 'mail', badge: chat.unreadCount || null },
   { to: '/m/profile', label: 'Profile', icon: 'person' },
 ])
@@ -392,11 +443,19 @@ const mobileWebLinks = computed(() =>
 
 const showCompactWebHeader = computed(() => $q.screen.lt.md)
 
-const showMobileTopbar = computed(() => ![
+const showMobileAppMenu = computed(() => [
   'mobile-home',
   'mobile-feed',
+  'mobile-search',
   'mobile-messages',
   'mobile-profile',
+].includes(route.name))
+
+const showMobileAppBottomNav = computed(() => true)
+
+const showMobileAppTopbar = computed(() => ![
+  'mobile-messages',
+  'mobile-message-thread',
 ].includes(route.name))
 
 const showSidebarDrawer = computed(() => !route.meta.chatFocused && $q.screen.lt.lg)
@@ -457,7 +516,10 @@ function toggleTheme() {
 }
 
 async function submitSearch() {
-  await router.push({ path: '/search', query: { q: searchText.value } })
+  await router.push({
+    path: route.meta.mobileShell ? '/m/search' : '/search',
+    query: { q: searchText.value },
+  })
 }
 
 async function handleLogout() {
