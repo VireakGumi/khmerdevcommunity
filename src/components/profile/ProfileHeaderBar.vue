@@ -20,7 +20,7 @@
     </nav>
 
     <div class="portfolio-pro-nav__actions">
-      <q-btn flat no-caps color="secondary" icon="content_copy" label="Copy link" class="portfolio-action-btn" @click="$emit('copy-link')" />
+      <q-btn flat no-caps color="secondary" icon="content_copy" label="Copy link" class="portfolio-action-btn portfolio-action-btn--ghost" @click="$emit('copy-link')" />
       <q-btn
         v-if="canFollow"
         flat
@@ -28,12 +28,12 @@
         :color="profile.is_following ? 'secondary' : 'grey-5'"
         :icon="profile.is_following ? 'person_remove' : 'person_add'"
         :label="profile.is_following ? 'Following' : 'Follow'"
-        class="portfolio-action-btn"
+        class="portfolio-action-btn portfolio-action-btn--ghost"
         @click="$emit('toggle-follow')"
       />
-      <q-btn v-if="canMessage" flat no-caps color="secondary" icon="mail" label="Message" class="portfolio-action-btn" :to="`/messages?recipient=${profile.id}`" />
-      <q-btn v-if="profile.portfolio_booking_url" color="primary" no-caps icon="calendar_month" label="Book call" class="portfolio-action-btn" :href="profile.portfolio_booking_url" target="_blank" />
-      <q-btn v-if="isOwnProfile" color="primary" no-caps icon="edit" label="Edit portfolio" class="portfolio-action-btn" to="/portfolio" />
+      <q-btn v-if="canMessage" flat no-caps color="secondary" icon="mail" label="Message" class="portfolio-action-btn portfolio-action-btn--ghost" :to="`/messages?recipient=${profile.id}`" />
+      <q-btn v-if="profile.portfolio_booking_url" color="primary" no-caps icon="calendar_month" label="Book call" class="portfolio-action-btn portfolio-action-btn--primary" :href="profile.portfolio_booking_url" target="_blank" />
+      <q-btn v-if="isOwnProfile" color="primary" no-caps icon="edit" label="Edit portfolio" class="portfolio-action-btn portfolio-action-btn--primary" to="/portfolio" />
     </div>
   </header>
 </template>
