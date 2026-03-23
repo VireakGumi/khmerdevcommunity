@@ -67,7 +67,13 @@
             </div>
 
             <div class="col-auto column q-gutter-sm">
-              <q-btn color="primary" no-caps label="Apply" :disable="job.is_applied || !session.isAuthenticated" @click="apply" />
+              <q-btn
+                color="primary"
+                no-caps
+                :label="job.is_owner ? 'Your job post' : 'Apply'"
+                :disable="job.is_owner || job.is_applied || !session.isAuthenticated"
+                @click="openApplyDialog"
+              />
               <q-btn flat no-caps :label="job.is_saved ? 'Saved' : 'Save job'" @click="saveJob" />
             </div>
           </div>
@@ -121,11 +127,42 @@
         </div>
       </div>
     </div>
+
+    <q-dialog v-model="applyDialog">
+      <q-card class="theme-dialog" style="width: 560px; max-width: 92vw">
+        <q-card-section>
+          <div class="section-label">Confirm Application</div>
+          <div class="text-h6 text-weight-bold q-mt-sm">Apply to {{ job?.title }}</div>
+          <div class="mini-card-copy q-mt-sm">
+            This will submit your interest to {{ job?.company_name }}. Make sure you really want to apply before continuing.
+          </div>
+        </q-card-section>
+        <q-card-section class="q-gutter-md">
+          <div class="utility-card">
+            <div class="mini-card-title">{{ job?.company_name }}</div>
+            <div class="mini-card-copy">{{ job?.location || 'Remote-friendly' }} • {{ job?.work_mode }} • {{ job?.experience_level }}</div>
+          </div>
+          <q-checkbox v-model="applyChecks.reviewed" label="I reviewed the role details and requirements." />
+          <q-checkbox v-model="applyChecks.ready" label="I am ready to send this application now." />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat no-caps color="secondary" label="Cancel" v-close-popup />
+          <q-btn
+            color="primary"
+            no-caps
+            label="Submit application"
+            :loading="applySubmitting"
+            :disable="!canSubmitApply"
+            @click="confirmApply"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useCommunityStore } from 'src/stores/community-store'
@@ -139,6 +176,12 @@ const session = useSessionStore()
 const loading = ref(false)
 const job = ref(null)
 const applicants = ref([])
+const applyDialog = ref(false)
+const applySubmitting = ref(false)
+const applyChecks = reactive({
+  reviewed: false,
+  ready: false,
+})
 
 const salaryText = computed(() => {
   if (!job.value) return ''
@@ -147,6 +190,7 @@ const salaryText = computed(() => {
 })
 
 const expiryText = computed(() => (job.value?.expires_at ? formatDate(job.value.expires_at, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Open until filled'))
+const canSubmitApply = computed(() => applyChecks.reviewed && applyChecks.ready)
 
 onMounted(async () => {
   loading.value = true
@@ -161,13 +205,28 @@ onMounted(async () => {
   }
 })
 
-async function apply() {
+function openApplyDialog() {
+  applyChecks.reviewed = false
+  applyChecks.ready = false
+  applyDialog.value = true
+}
+
+async function confirmApply() {
+  if (!canSubmitApply.value) {
+    return
+  }
+
+  applySubmitting.value = true
+
   try {
     await community.applyToJob(job.value.id)
     job.value.is_applied = true
+    applyDialog.value = false
     $q.notify({ type: 'positive', message: 'Application submitted' })
   } catch (error) {
     $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to apply' })
+  } finally {
+    applySubmitting.value = false
   }
 }
 

@@ -87,6 +87,15 @@
               <q-toggle v-model="form.notification_preferences.events" />
             </div>
           </div>
+          <div class="stack-card q-pa-md q-mt-md">
+            <div class="text-subtitle2 text-weight-bold">Phone and browser push</div>
+            <div class="mini-card-copy q-mt-xs">Enable device notifications so replies, messages, follows, and alerts can reach your phone outside the app.</div>
+            <div class="q-mt-md row q-col-gutter-sm">
+              <div class="col-auto">
+                <q-btn color="primary" no-caps icon="notifications_active" label="Enable push notifications" :loading="enablingPush" @click="enablePushNotifications" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -121,6 +130,24 @@
           </div>
         </div>
       </div>
+
+      <div v-if="session.isAdmin" class="col-12">
+        <div class="content-card q-pa-lg">
+          <div class="portfolio-section-head">
+            <div class="section-label">Admin</div>
+            <h2 class="portfolio-section-title">Operations and review tools</h2>
+          </div>
+          <div class="mini-card-copy q-mt-sm">Open the donation review dashboard to verify KHQR confirmations and manage supporter submissions.</div>
+          <div class="q-mt-md row q-col-gutter-sm">
+            <div class="col-auto">
+            <q-btn color="primary" no-caps icon="shield" label="Open admin donations" to="/admin/donations" />
+            </div>
+            <div class="col-auto">
+              <q-btn flat color="secondary" no-caps icon="flag" label="Open admin reports" to="/admin/reports" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     </template>
   </q-page>
@@ -129,12 +156,16 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
+import { initializePushNotifications } from 'src/services/push-notifications'
 import { useSessionStore } from 'src/stores/session-store'
 
 const $q = useQuasar()
+const router = useRouter()
 const session = useSessionStore()
 const loading = ref(false)
 const saving = ref(false)
+const enablingPush = ref(false)
 const form = reactive({
   notification_preferences: {
     mentions: true,
@@ -171,6 +202,51 @@ async function save() {
     $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to save settings' })
   } finally {
     saving.value = false
+  }
+}
+
+async function enablePushNotifications() {
+  enablingPush.value = true
+
+  try {
+    const result = await initializePushNotifications({
+      onForegroundNotification(payload) {
+        const title = payload?.notification?.title || payload?.title || 'New notification'
+        const message = payload?.notification?.body || payload?.body || payload?.data?.body || 'You have new activity.'
+
+        $q.notify({
+          type: 'info',
+          message: `${title}: ${message}`,
+          timeout: 3200,
+        })
+      },
+      onOpenRoute(target) {
+        if (!target) {
+          return
+        }
+
+        try {
+          const normalized = target.startsWith('http')
+            ? new URL(target).hash.replace(/^#/, '') || new URL(target).pathname
+            : target.replace(/^#/, '')
+
+          router.push(normalized.startsWith('/') ? normalized : `/${normalized}`)
+        } catch {
+          router.push(target)
+        }
+      },
+    })
+
+    if (result?.enabled) {
+      $q.notify({ type: 'positive', message: 'Push notifications enabled' })
+      return
+    }
+
+    $q.notify({ type: 'warning', message: 'Push notifications are not available yet on this device' })
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error.response?.data?.message || error.message || 'Failed to enable push notifications' })
+  } finally {
+    enablingPush.value = false
   }
 }
 </script>

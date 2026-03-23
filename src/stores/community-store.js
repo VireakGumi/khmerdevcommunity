@@ -60,6 +60,58 @@ function buildFormData(payload = {}) {
   return formData
 }
 
+function updateCommentTree(comments = [], updatedComment) {
+  return (comments || []).map((comment) => {
+    if (comment.id === updatedComment.id) {
+      return {
+        ...comment,
+        ...updatedComment,
+      }
+    }
+
+    if (comment.replies?.length) {
+      return {
+        ...comment,
+        replies: updateCommentTree(comment.replies, updatedComment),
+      }
+    }
+
+    return comment
+  })
+}
+
+function removeCommentFromTree(comments = [], commentId) {
+  let removedCount = 0
+
+  const nextComments = (comments || [])
+    .filter((comment) => {
+      if (comment.id === commentId) {
+        removedCount += 1 + (comment.replies?.length || 0)
+        return false
+      }
+
+      return true
+    })
+    .map((comment) => {
+      if (!comment.replies?.length) {
+        return comment
+      }
+
+      const result = removeCommentFromTree(comment.replies, commentId)
+      removedCount += result.removedCount
+
+      return {
+        ...comment,
+        replies: result.comments,
+      }
+    })
+
+  return {
+    comments: nextComments,
+    removedCount,
+  }
+}
+
 export const useCommunityStore = defineStore('community', {
   state: () => ({
     home: null,
@@ -286,13 +338,85 @@ export const useCommunityStore = defineStore('community', {
       const publicPost = this.publicProfile?.posts?.find((item) => item.id === postId)
 
       if (post) {
-        post.comments = [data, ...(post.comments || [])]
+        if (parentId) {
+          const target = (post.comments || []).find((item) => item.id === parentId)
+
+          if (target) {
+            target.replies = [data, ...(target.replies || [])]
+          }
+        } else {
+          post.comments = [data, ...(post.comments || [])]
+        }
+
         post.comments_count += 1
       }
 
       if (publicPost) {
-        publicPost.comments = [data, ...(publicPost.comments || [])]
+        if (parentId) {
+          const target = (publicPost.comments || []).find((item) => item.id === parentId)
+
+          if (target) {
+            target.replies = [data, ...(target.replies || [])]
+          }
+        } else {
+          publicPost.comments = [data, ...(publicPost.comments || [])]
+        }
+
         publicPost.comments_count += 1
+      }
+
+      return data
+    },
+
+    async updatePostComment(commentId, body) {
+      const { data } = await api.put(`/feed/comments/${commentId}`, { body })
+
+      this.feedList.items = this.feedList.items.map((post) => ({
+        ...post,
+        comments: updateCommentTree(post.comments || [], data),
+      }))
+
+      if (this.publicProfile?.posts?.length) {
+        this.publicProfile.posts = this.publicProfile.posts.map((post) => ({
+          ...post,
+          comments: updateCommentTree(post.comments || [], data),
+        }))
+      }
+
+      return data
+    },
+
+    async deletePostComment(commentId) {
+      const { data } = await api.delete(`/feed/comments/${commentId}`)
+
+      this.feedList.items = this.feedList.items.map((post) => {
+        const result = removeCommentFromTree(post.comments || [], commentId)
+
+        if (!result.removedCount) {
+          return post
+        }
+
+        return {
+          ...post,
+          comments: result.comments,
+          comments_count: Math.max(0, (post.comments_count || 0) - result.removedCount),
+        }
+      })
+
+      if (this.publicProfile?.posts?.length) {
+        this.publicProfile.posts = this.publicProfile.posts.map((post) => {
+          const result = removeCommentFromTree(post.comments || [], commentId)
+
+          if (!result.removedCount) {
+            return post
+          }
+
+          return {
+            ...post,
+            comments: result.comments,
+            comments_count: Math.max(0, (post.comments_count || 0) - result.removedCount),
+          }
+        })
       }
 
       return data
@@ -387,6 +511,11 @@ export const useCommunityStore = defineStore('community', {
 
     async fetchJobApplicants(jobId) {
       const { data } = await api.get(`/jobs/${jobId}/applicants`)
+      return data
+    },
+
+    async updateJobApplication(jobId, applicationId, payload) {
+      const { data } = await api.patch(`/jobs/${jobId}/applications/${applicationId}`, payload)
       return data
     },
 

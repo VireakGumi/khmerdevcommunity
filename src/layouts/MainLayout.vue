@@ -207,7 +207,7 @@
           <div class="shell-content" :class="{ 'shell-content--mobile-bottom-nav': showCompactWebHeader }">
             <div class="glass-panel topbar-panel q-px-md q-py-sm">
               <template v-if="showCompactWebHeader">
-                <div class="topbar-mobile-bar">
+                <div class="topbar-mobile-bar kdc-shell-mobile-bar">
                   <q-btn flat round dense class="app-icon-btn" icon="menu" @click="sidebarOpen = true" />
                   <div class="topbar-mobile-brand">
                     <img src="/img/logo.png" alt="khmerdevcommunity" class="topbar-mobile-brand__logo" />
@@ -248,8 +248,8 @@
                     @click="toggleTheme"
                   />
                 </div>
-                <div class="topbar-mobile-title">{{ route.meta.title || 'Build with the community' }}</div>
-                <div class="topbar-mobile-search">
+                <div class="topbar-mobile-title kdc-shell-mobile-title">{{ route.meta.title || 'Build with the community' }}</div>
+                <div class="topbar-mobile-search kdc-shell-mobile-search">
                   <q-input
                     dense
                     outlined
@@ -362,7 +362,7 @@
 
             <router-view />
 
-            <div v-if="showCompactWebHeader" class="glass-panel web-mobile-bottom-nav">
+            <div v-if="showCompactWebHeader" class="glass-panel web-mobile-bottom-nav kdc-shell-bottom-nav">
               <q-btn
                 v-for="item in mobileWebLinks"
                 :key="item.to"
@@ -392,6 +392,7 @@ import SidebarContent from 'src/components/app-shell/SidebarContent.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useChatStore } from 'src/stores/chat-store'
 import { useSessionStore } from 'src/stores/session-store'
+import { initializePushNotifications, unregisterPushNotifications } from 'src/services/push-notifications'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -411,6 +412,8 @@ const desktopLinks = computed(() => [
   { to: '/search', label: 'Search', icon: 'search' },
   ...(session.isAuthenticated ? [{ to: '/saved', label: 'Saved', icon: 'bookmark' }] : []),
   ...(session.isAuthenticated ? [{ to: '/portfolio', label: 'Portfolio', icon: 'account_box' }] : []),
+  ...(session.isAdmin ? [{ to: '/admin/donations', label: 'Admin', icon: 'shield' }] : []),
+  ...(session.isAdmin ? [{ to: '/admin/reports', label: 'Reports', icon: 'flag' }] : []),
 ])
 
 const mobileAppPrimaryLinks = computed(() => [
@@ -523,9 +526,48 @@ async function submitSearch() {
 }
 
 async function handleLogout() {
+  await unregisterPushNotifications()
   await session.logout()
   chat.reset()
   await router.push('/')
+}
+
+async function setupPushNotifications() {
+  if (!session.isAuthenticated) {
+    return
+  }
+
+  try {
+    await initializePushNotifications({
+      onForegroundNotification(payload) {
+        const title = payload?.notification?.title || payload?.title || 'New notification'
+        const message = payload?.notification?.body || payload?.body || payload?.data?.body || 'You have new activity.'
+
+        $q.notify({
+          type: 'info',
+          message: `${title}: ${message}`,
+          timeout: 3200,
+        })
+      },
+      onOpenRoute(target) {
+        if (!target) {
+          return
+        }
+
+        try {
+          const normalized = target.startsWith('http')
+            ? new URL(target).hash.replace(/^#/, '') || new URL(target).pathname
+            : target.replace(/^#/, '')
+
+          router.push(normalized.startsWith('/') ? normalized : `/${normalized}`)
+        } catch {
+          router.push(target)
+        }
+      },
+    })
+  } catch {
+    // keep push setup non-blocking
+  }
 }
 
 onMounted(() => {
@@ -542,6 +584,7 @@ onMounted(() => {
   if (session.isAuthenticated) {
     chat.fetchUnreadCount().catch(() => {})
     chat.connectRealtime()
+    setupPushNotifications()
   }
 })
 
@@ -551,9 +594,11 @@ watch(
     if (isAuthenticated) {
       chat.fetchUnreadCount().catch(() => {})
       chat.connectRealtime()
+      setupPushNotifications()
       return
     }
 
+    unregisterPushNotifications().catch(() => {})
     chat.reset()
   },
 )

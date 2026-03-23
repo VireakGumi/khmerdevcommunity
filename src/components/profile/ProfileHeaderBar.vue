@@ -6,7 +6,7 @@
       <div class="card-meta">Public profile and developer proof-of-work</div>
     </div>
 
-    <nav class="portfolio-pro-nav__links" :class="{ 'portfolio-pro-nav__links--mobile': isMobile }">
+    <nav class="portfolio-pro-nav__links kdc-inline-scroll" :class="{ 'portfolio-pro-nav__links--mobile': isMobile }">
       <button
         v-for="item in tabs"
         :key="item.value"
@@ -19,7 +19,7 @@
       </button>
     </nav>
 
-    <div class="portfolio-pro-nav__actions">
+    <div class="portfolio-pro-nav__actions kdc-action-cluster kdc-action-cluster--nowrap kdc-inline-scroll">
       <q-btn flat no-caps color="secondary" icon="content_copy" label="Copy link" class="portfolio-action-btn portfolio-action-btn--ghost" @click="$emit('copy-link')" />
       <q-btn
         v-if="canFollow"

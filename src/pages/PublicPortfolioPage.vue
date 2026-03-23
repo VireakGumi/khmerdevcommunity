@@ -1,6 +1,6 @@
 <template>
-  <q-page padding>
-    <div v-if="loading" class="portfolio-page">
+  <q-page padding class="portfolio-page-screen">
+    <div v-if="loading" class="portfolio-page kdc-page-shell">
       <section class="content-card q-pa-lg q-mb-lg page-skeleton-panel">
         <q-skeleton square height="240px" class="rounded-borders" />
         <div class="row q-col-gutter-lg q-mt-lg items-center">
@@ -15,7 +15,7 @@
         </div>
       </section>
 
-      <div class="portfolio-pro-grid portfolio-pro-grid--wide">
+      <div class="portfolio-pro-grid portfolio-pro-grid--wide kdc-page-grid">
         <main class="portfolio-pro-main">
           <section v-for="section in 4" :key="`portfolio-skeleton-${section}`" class="content-card q-pa-lg q-mb-lg page-skeleton-panel">
             <q-skeleton type="text" width="18%" />
@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div v-if="profile" class="portfolio-page">
+    <div v-if="profile" class="portfolio-page kdc-page-shell">
       <ProfileHeaderBar
         :model-value="activeTab"
         :profile="profile"
@@ -61,7 +61,7 @@
         :achievement-badges="achievementBadges"
       />
 
-      <div class="portfolio-pro-grid portfolio-pro-grid--wide">
+      <div class="portfolio-pro-grid portfolio-pro-grid--wide kdc-page-grid">
         <main class="portfolio-pro-main">
           <section
             id="portfolio-tab-overview"
@@ -132,6 +132,7 @@
           :link-items="linkItems"
           :social-actions="socialActions"
           :is-premium="isPremium"
+          :recommended-jobs="recommendedJobs"
           :trending-contributors="trendingContributors"
           :current-user-id="session.user?.id || null"
           :is-authenticated="session.isAuthenticated"
@@ -241,6 +242,57 @@ const heroSecondary = computed(() => profile.value?.profile_palette?.secondary |
 const visibleProjects = computed(() => (profile.value?.projects || []).slice(0, 4))
 const openSourceProjects = computed(() => (profile.value?.projects || []).filter((project) => project.repo_url).slice(0, 4))
 const rankedDevelopers = computed(() => [...community.developers].sort((a, b) => contributorScore(b) - contributorScore(a)))
+const recommendedJobs = computed(() => {
+  const skills = (profile.value?.skills || []).map((skill) => skill.toLowerCase())
+  const location = profile.value?.location?.toLowerCase() || ''
+  const availability = profile.value?.availability?.toLowerCase() || ''
+  const yearsExperience = (profile.value?.work_experience || []).length
+  const preferredLevels = yearsExperience >= 5
+    ? ['senior', 'lead']
+    : yearsExperience >= 2
+      ? ['mid', 'junior']
+      : ['intern', 'junior']
+
+  return [...community.jobs]
+    .map((job) => {
+      const stack = (job.tech_stack || []).map((item) => String(item).toLowerCase())
+      const title = `${job.title || ''} ${job.summary || ''}`.toLowerCase()
+      const jobLocation = `${job.location || ''} ${job.work_mode || ''}`.toLowerCase()
+      const skillMatches = skills.filter((skill) => stack.includes(skill) || title.includes(skill))
+      let score = skillMatches.length * 4
+
+      if (preferredLevels.includes(job.experience_level)) {
+        score += 3
+      }
+
+      if (job.work_mode === 'remote') {
+        score += 2
+      }
+
+      if (location && jobLocation.includes(location)) {
+        score += 2
+      }
+
+      if (availability.includes('open') || availability.includes('available')) {
+        score += 1
+      }
+
+      return {
+        ...job,
+        recommendationScore: score,
+        recommendationReason: skillMatches.length
+          ? `Matches ${skillMatches.slice(0, 2).join(', ')}`
+          : preferredLevels.includes(job.experience_level)
+            ? `Fits ${job.experience_level} level`
+            : job.work_mode === 'remote'
+              ? 'Remote-friendly match'
+              : 'Potential fit',
+      }
+    })
+    .filter((job) => job.recommendationScore > 0)
+    .sort((left, right) => right.recommendationScore - left.recommendationScore)
+    .slice(0, 4)
+})
 
 const currentRank = computed(() => {
   if (!profile.value?.id) {
@@ -369,6 +421,7 @@ const mobilePanels = computed(() =>
     { key: 'contact', label: 'Contact', caption: 'Message and booking actions', icon: 'mail', defaultOpened: true },
     { key: 'links', label: 'Links', caption: 'GitHub, LinkedIn, and website', icon: 'link', defaultOpened: false },
     { key: 'skills', label: 'Skills', caption: 'Primary tech stack', icon: 'terminal', defaultOpened: false },
+    { key: 'jobs', label: 'Recommended jobs', caption: 'Roles matched to this portfolio', icon: 'work', defaultOpened: false },
     { key: 'signals', label: 'Profile Strength', caption: 'Completeness and visibility', icon: 'verified', defaultOpened: false },
     { key: 'trending', label: 'Trending Contributors', caption: 'Builders to watch', icon: 'trending_up', defaultOpened: false },
     ...(isOwnProfile.value ? [{ key: 'notifications', label: 'Notifications', caption: 'Manage your social flow', icon: 'notifications', defaultOpened: false }] : []),
@@ -451,7 +504,11 @@ function sharePost(post) {
 onMounted(async () => {
   loading.value = true
   try {
-    await Promise.all([community.fetchPublicProfile(route.params.username), community.fetchDevelopers()])
+    await Promise.all([
+      community.fetchPublicProfile(route.params.username),
+      community.fetchDevelopers(),
+      community.fetchJobs({ page: 1, append: false }),
+    ])
     await nextTick()
     updateActiveTabFromScroll()
     window.addEventListener('scroll', updateActiveTabFromScroll, { passive: true })

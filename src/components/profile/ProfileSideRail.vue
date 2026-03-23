@@ -65,6 +65,18 @@
           </div>
         </template>
 
+        <template v-else-if="panel.key === 'jobs'">
+          <div v-if="recommendedJobs.length" class="portfolio-writing-list">
+            <article v-for="job in recommendedJobs" :key="job.id" class="portfolio-writing-card">
+              <div class="mini-card-title">{{ job.title }}</div>
+              <div class="card-meta q-mt-xs">{{ job.company_name }} · {{ job.work_mode }}</div>
+              <div class="mini-card-copy q-mt-sm">{{ job.recommendationReason }}</div>
+              <q-btn class="q-mt-md" flat no-caps color="primary" icon="work" label="View role" :to="`/jobs/${job.slug}`" />
+            </article>
+          </div>
+          <div v-else class="mini-card-copy">No matching jobs yet.</div>
+        </template>
+
         <template v-else-if="panel.key === 'signals'">
           <div class="portfolio-signal-list">
             <div class="feature-row">
@@ -125,7 +137,7 @@
 
   <aside v-else class="portfolio-pro-side">
     <section class="content-card portfolio-section q-pa-md">
-      <div class="portfolio-section-head portfolio-section-head--compact">
+      <div class="portfolio-section-head kdc-section-head portfolio-section-head--compact">
         <div class="section-label">Social Pulse</div>
         <h2 class="portfolio-section-title">Why this profile matters</h2>
       </div>
@@ -150,7 +162,7 @@
     </section>
 
     <section class="content-card portfolio-section q-pa-md">
-      <div class="portfolio-section-head portfolio-section-head--compact">
+      <div class="portfolio-section-head kdc-section-head portfolio-section-head--compact">
         <div class="section-label">Contact</div>
         <h2 class="portfolio-section-title">Work together</h2>
       </div>
@@ -164,7 +176,7 @@
     </section>
 
     <section class="content-card portfolio-section q-pa-md q-mt-md">
-      <div class="portfolio-section-head portfolio-section-head--compact">
+      <div class="portfolio-section-head kdc-section-head portfolio-section-head--compact">
         <div class="section-label">Links</div>
         <h2 class="portfolio-section-title">Professional presence</h2>
       </div>
@@ -180,7 +192,7 @@
     </section>
 
     <section class="content-card portfolio-section q-pa-md q-mt-md">
-      <div class="portfolio-section-head portfolio-section-head--compact">
+      <div class="portfolio-section-head kdc-section-head portfolio-section-head--compact">
         <div class="section-label">Skills</div>
         <h2 class="portfolio-section-title">Tech stack</h2>
       </div>
@@ -191,7 +203,23 @@
     </section>
 
     <section class="content-card portfolio-section q-pa-md q-mt-md">
-      <div class="portfolio-section-head portfolio-section-head--compact">
+      <div class="portfolio-section-head kdc-section-head portfolio-section-head--compact">
+        <div class="section-label">Recommended Jobs</div>
+        <h2 class="portfolio-section-title">Matched to this portfolio</h2>
+      </div>
+      <div v-if="recommendedJobs.length" class="portfolio-writing-list q-mt-md">
+        <article v-for="job in recommendedJobs" :key="job.id" class="portfolio-writing-card">
+          <div class="mini-card-title">{{ job.title }}</div>
+          <div class="card-meta q-mt-xs">{{ job.company_name }} · {{ job.work_mode }}</div>
+          <div class="mini-card-copy q-mt-sm">{{ job.recommendationReason }}</div>
+          <q-btn class="q-mt-md" flat no-caps color="primary" icon="work" label="View role" :to="`/jobs/${job.slug}`" />
+        </article>
+      </div>
+      <div v-else class="mini-card-copy q-mt-md">No matching jobs yet.</div>
+    </section>
+
+    <section class="content-card portfolio-section q-pa-md q-mt-md">
+      <div class="portfolio-section-head kdc-section-head portfolio-section-head--compact">
         <div class="section-label">Signals</div>
         <h2 class="portfolio-section-title">Profile strength</h2>
       </div>
@@ -216,7 +244,7 @@
     </section>
 
     <section class="content-card portfolio-section q-pa-md q-mt-md">
-      <div class="portfolio-section-head portfolio-section-head--compact">
+      <div class="portfolio-section-head kdc-section-head portfolio-section-head--compact">
         <div class="section-label">Trending Contributors</div>
         <h2 class="portfolio-section-title">Builders to watch</h2>
       </div>
@@ -262,6 +290,7 @@ defineProps({
   linkItems: { type: Array, required: true },
   socialActions: { type: Array, required: true },
   isPremium: { type: Boolean, default: false },
+  recommendedJobs: { type: Array, default: () => [] },
   trendingContributors: { type: Array, required: true },
   currentUserId: { type: Number, default: null },
   isAuthenticated: { type: Boolean, default: false },

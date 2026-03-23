@@ -1,6 +1,6 @@
 <template>
-  <div class="chat-composer" :class="{ 'chat-composer--mobile': mobile }">
-    <div class="chat-composer__field">
+  <div class="chat-composer" :class="{ 'chat-composer--mobile': mobile, 'kdc-inline-input-row': mobile }">
+    <div class="chat-composer__field" :class="{ 'kdc-inline-input-row__field': mobile }">
       <div v-if="replyMessage" class="chat-composer__reply">
         <div class="chat-composer__reply-copy">
           <span class="mini-label">Replying to</span>

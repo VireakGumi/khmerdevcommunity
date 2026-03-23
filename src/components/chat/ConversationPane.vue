@@ -1,6 +1,6 @@
 <template>
   <section v-if="conversation" class="content-card chat-pane-card" :class="{ 'chat-pane-card--mobile': mobile }">
-    <div class="chat-pane-head">
+    <div class="chat-pane-head kdc-page-head">
       <div class="chat-pane-identity">
         <div v-if="mobile" class="chat-pane-back">
           <q-btn flat round dense icon="arrow_back" color="grey-5" @click="$emit('back')" />
@@ -12,13 +12,13 @@
         <div class="chat-pane-copy">
           <div class="chat-pane-topline">
             <div class="text-subtitle1 text-weight-bold">{{ conversation.partner?.name || 'Unknown developer' }}</div>
-            <span v-if="!mobile" class="chat-pane-status">Direct thread</span>
+            <span v-if="!mobile" class="chat-pane-status">{{ paneStatus }}</span>
           </div>
           <div class="card-meta">@{{ conversation.partner?.username || 'unknown' }}</div>
           <!-- <div v-if="conversation.partner?.headline" class="chat-pane-headline">{{ conversation.partner.headline }}</div> -->
         </div>
       </div>
-      <div class="chat-pane-actions">
+      <div class="chat-pane-actions kdc-action-cluster kdc-inline-scroll kdc-action-cluster--nowrap">
         <q-btn v-if="!mobile" flat round dense class="chat-pane-action-btn" icon="search" color="grey-5" @click="toggleSearch">
           <q-tooltip>Search in conversation</q-tooltip>
         </q-btn>
@@ -112,6 +112,7 @@
                 :show-meta="index === item.group.messages.length - 1"
                 @reply="replyToMessage"
                 @copy="copyMessage"
+                @retry="retryMessage"
               />
             </div>
           </div>
@@ -166,7 +167,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['send', 'back', 'toggle-details'])
+const emit = defineEmits(['send', 'retry', 'back', 'toggle-details'])
 const $q = useQuasar()
 const searchOpen = ref(false)
 const searchQuery = ref('')
@@ -244,6 +245,20 @@ const timelineItems = computed(() => {
   return items
 })
 
+const paneStatus = computed(() => {
+  const lastMessage = props.conversation?.last_message
+
+  if (!lastMessage?.is_mine) {
+    return 'Direct thread'
+  }
+
+  if (lastMessage.pending) {
+    return 'Sending...'
+  }
+
+  return lastMessage.is_read ? 'Seen' : 'Delivered'
+})
+
 function handleScroll() {
   const element = scrollArea.value
 
@@ -289,6 +304,10 @@ async function copyMessage(body) {
 function forwardMessage(body) {
   emit('send', body)
   replyMessage.value = null
+}
+
+function retryMessage(message) {
+  emit('retry', message)
 }
 
 watch(

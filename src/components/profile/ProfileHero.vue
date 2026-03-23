@@ -4,8 +4,8 @@
       <div class="portfolio-cover-stage__glow" />
       <div class="portfolio-cover-stage__mesh" />
     </div>
-    <div class="portfolio-profile-shell__hero">
-      <div class="portfolio-profile-shell__identity">
+    <div class="portfolio-profile-shell__hero kdc-hero-split">
+      <div class="portfolio-profile-shell__identity kdc-hero-split__main">
         <div class="portfolio-avatar-frame">
           <q-avatar size="144px" class="portfolio-profile-avatar" :style="{ background: heroPrimary }" text-color="white">
             <img v-if="profile.avatar_url" :src="profile.avatar_url" :alt="profile.name" />
@@ -47,7 +47,7 @@
         </div>
       </div>
 
-      <aside class="portfolio-profile-shell__aside">
+      <aside class="portfolio-profile-shell__aside kdc-hero-split__aside">
         <div class="portfolio-side-panel">
           <div class="section-label">At A Glance</div>
           <div class="mini-card-copy q-mt-sm">Visible community footprint and public developer signals.</div>

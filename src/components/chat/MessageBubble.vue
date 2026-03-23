@@ -2,6 +2,9 @@
   <div class="message-stack" :class="{ 'message-stack--compact': compact }">
     <div class="message-bubble-wrap" :class="{ 'message-bubble-wrap--mine': message.is_mine }">
       <div class="message-bubble-actions">
+        <q-btn v-if="message.failed" flat round dense size="sm" icon="refresh" color="negative" @click="$emit('retry', message)">
+          <q-tooltip>Retry</q-tooltip>
+        </q-btn>
         <q-btn flat round dense size="sm" icon="reply" color="grey-5" @click="$emit('reply', message)">
           <q-tooltip>Reply</q-tooltip>
         </q-btn>
@@ -20,7 +23,7 @@
     </div>
     <div v-if="showMeta" class="message-bubble__meta" :class="{ 'message-bubble__meta--mine': message.is_mine }">
       <span>{{ sentAt }}</span>
-      <span v-if="message.is_mine">{{ message.pending ? 'Sending...' : message.is_read ? 'Seen' : 'Sent' }}</span>
+      <span v-if="message.is_mine">{{ deliveryLabel }}</span>
     </div>
   </div>
 </template>
@@ -43,9 +46,20 @@ const props = defineProps({
   },
 })
 
-defineEmits(['reply', 'copy'])
+defineEmits(['reply', 'copy', 'retry'])
 
 const sentAt = computed(() => new Date(props.message.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }))
+const deliveryLabel = computed(() => {
+  if (props.message.pending) {
+    return 'Sending...'
+  }
+
+  if (props.message.failed) {
+    return 'Failed'
+  }
+
+  return props.message.is_read ? 'Seen' : 'Delivered'
+})
 const replyPreview = computed(() => {
   const body = props.message.body || ''
   const match = body.match(/^>\s*([^:]+):\s*(.+)\n([\s\S]*)$/)

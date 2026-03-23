@@ -140,6 +140,10 @@ export default defineRouter(function (/* { store, ssrContext } */) {
       return { name: 'login', query: { redirect: to.fullPath } }
     }
 
+    if (to.meta.requiresAdmin && !session.isAdmin) {
+      return { name: 'home' }
+    }
+
     if (to.meta.guestOnly && session.isAuthenticated) {
       return { name: 'feed' }
     }

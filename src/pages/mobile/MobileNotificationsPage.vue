@@ -34,20 +34,23 @@
     </div>
 
     <div v-else class="q-mt-md">
-      <article v-for="notification in notifications" :key="notification.id" class="stack-card q-pa-md q-mb-sm mobile-notification-card">
-        <div class="row items-center justify-between">
-          <q-chip square dense :class="['theme-chip', notification.read_at ? '' : 'theme-chip-primary']">{{ notification.type }}</q-chip>
-          <div class="text-caption muted-text">{{ formatRelative(notification.sent_at) }}</div>
-        </div>
-        <div class="text-subtitle2 text-weight-bold q-mt-md">{{ notification.title }}</div>
-        <div class="text-body2 muted-text q-mt-sm">{{ notification.body }}</div>
-        <div class="row items-center justify-between q-mt-md">
-          <div class="text-caption" :style="{ color: notification.read_at ? 'var(--kdc-copy-soft)' : 'var(--kdc-primary)' }">
-            {{ notification.read_at ? 'Read' : 'Unread' }}
+      <section v-for="group in groupedNotifications" :key="group.label" class="q-mb-md">
+        <div class="section-label q-mb-sm">{{ group.label }}</div>
+        <article v-for="notification in group.items" :key="notification.id" class="stack-card q-pa-md q-mb-sm mobile-notification-card">
+          <div class="row items-center justify-between">
+            <q-chip square dense :class="['theme-chip', notification.read_at ? '' : 'theme-chip-primary']">{{ notification.type }}</q-chip>
+            <div class="text-caption muted-text">{{ formatRelative(notification.sent_at) }}</div>
           </div>
-          <q-btn v-if="notification.action_url" flat dense no-caps color="primary" label="Open" :to="notification.action_url" />
-        </div>
-      </article>
+          <div class="text-subtitle2 text-weight-bold q-mt-md">{{ notification.title }}</div>
+          <div class="text-body2 muted-text q-mt-sm">{{ notification.body }}</div>
+          <div class="row items-center justify-between q-mt-md">
+            <div class="text-caption" :style="{ color: notification.read_at ? 'var(--kdc-copy-soft)' : 'var(--kdc-primary)' }">
+              {{ notification.read_at ? 'Read' : 'Unread' }}
+            </div>
+            <q-btn v-if="notificationTarget(notification)" flat dense no-caps color="primary" label="Open" :to="notificationTarget(notification)" />
+          </div>
+        </article>
+      </section>
     </div>
   </q-page>
 </template>
@@ -61,6 +64,69 @@ const community = useCommunityStore()
 const loading = ref(false)
 const notifications = computed(() => community.notifications)
 const unreadCount = computed(() => notifications.value.filter((item) => !item.read_at).length)
+const groupedNotifications = computed(() => {
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const startOfWeek = new Date(startOfToday)
+  startOfWeek.setDate(startOfToday.getDate() - 7)
+
+  const groups = [
+    { label: 'Today', items: [] },
+    { label: 'This week', items: [] },
+    { label: 'Earlier', items: [] },
+  ]
+
+  for (const notification of notifications.value) {
+    const sentAt = new Date(notification.sent_at)
+
+    if (sentAt >= startOfToday) {
+      groups[0].items.push(notification)
+    } else if (sentAt >= startOfWeek) {
+      groups[1].items.push(notification)
+    } else {
+      groups[2].items.push(notification)
+    }
+  }
+
+  return groups.filter((group) => group.items.length)
+})
+
+function nestedField(source, key) {
+  return source?.[key] ?? source?.data?.[key] ?? source?.meta?.[key] ?? source?.payload?.[key] ?? null
+}
+
+function notificationTarget(notification) {
+  if (notification.action_url) {
+    return notification.action_url
+  }
+
+  const conversationId = nestedField(notification, 'conversation_id')
+  if (conversationId) {
+    return `/m/messages?conversation=${conversationId}`
+  }
+
+  const postId = nestedField(notification, 'post_id')
+  if (postId) {
+    return `/m/feed/${postId}`
+  }
+
+  const eventId = nestedField(notification, 'event_id')
+  if (eventId) {
+    return `/m/events/${eventId}`
+  }
+
+  const jobSlug = nestedField(notification, 'job_slug')
+  if (jobSlug) {
+    return `/m/jobs/${jobSlug}`
+  }
+
+  const username = nestedField(notification, 'username')
+  if (username) {
+    return `/m/u/${username}`
+  }
+
+  return null
+}
 
 onMounted(async () => {
   loading.value = true

@@ -9,6 +9,7 @@
         :sending="chat.sending"
         :focus-search-key="conversationSearchKey"
         @send="sendMessage"
+        @retry="retryMessage"
         @back="goBack"
         @toggle-details="detailsOpen = !detailsOpen"
       />
@@ -189,6 +190,14 @@ async function sendMessage(body) {
     await chat.sendMessage(body)
   } catch (error) {
     $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to send message' })
+  }
+}
+
+async function retryMessage(message) {
+  try {
+    await chat.retryMessage(message)
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to retry message' })
   }
 }
 

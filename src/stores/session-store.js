@@ -11,6 +11,7 @@ export const useSessionStore = defineStore('session', {
 
   getters: {
     isAuthenticated: (state) => Boolean(state.token && state.user),
+    isAdmin: (state) => Boolean(state.user?.is_admin),
   },
 
   actions: {

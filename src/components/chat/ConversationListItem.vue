@@ -21,7 +21,7 @@
       </div>
       <div class="conversation-item__footer">
         <span class="conversation-item__tag">{{ conversation.unread_count ? 'Unread' : conversation.last_message ? 'Recent' : 'New' }}</span>
-        <!-- <span class="conversation-item__status">{{ conversation.partner?.headline || 'Direct conversation' }}</span> -->
+        <span v-if="statusLabel" class="conversation-item__status">{{ statusLabel }}</span>
       </div>
     </div>
   </button>
@@ -45,6 +45,19 @@ const props = defineProps({
 defineEmits(['select'])
 
 const relativeTime = computed(() => formatRelative(props.conversation.last_message_at || props.conversation.updated_at))
+const statusLabel = computed(() => {
+  const lastMessage = props.conversation.last_message
+
+  if (!lastMessage?.is_mine) {
+    return props.conversation.partner?.headline || 'Direct conversation'
+  }
+
+  if (lastMessage.pending) {
+    return 'Sending...'
+  }
+
+  return lastMessage.is_read ? 'Seen' : 'Delivered'
+})
 const previewText = computed(() => {
   const body = props.conversation.last_message?.body
 

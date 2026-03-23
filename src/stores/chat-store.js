@@ -32,6 +32,10 @@ function sortConversationsByActivity(conversations) {
   })
 }
 
+function totalUnreadConversations(conversations) {
+  return conversations.reduce((total, conversation) => total + (conversation?.unread_count || 0), 0)
+}
+
 export const useChatStore = defineStore('chat', {
   state: () => ({
     conversations: [],
@@ -84,6 +88,7 @@ export const useChatStore = defineStore('chat', {
             ...conversation,
           })),
         )
+        this.syncUnreadCount()
         return data
       } finally {
         if (!options.silent) {
@@ -146,23 +151,48 @@ export const useChatStore = defineStore('chat', {
         is_mine: true,
         is_read: false,
         pending: true,
+        failed: false,
       }
+      const currentConversation = this.conversations.find((item) => item.id === conversationId)
 
       this.sending = true
       this.conversationMessages[conversationId] = [...(this.conversationMessages[conversationId] || []), optimisticMessage]
+      this.upsertConversation({
+        ...currentConversation,
+        id: conversationId,
+        last_message: optimisticMessage,
+        last_message_at: optimisticMessage.sent_at,
+        unread_count: 0,
+      })
 
       try {
         const { data } = await api.post(`/conversations/${conversationId}/messages`, { body })
         this.replaceMessage(conversationId, tempId, data.message)
         this.upsertConversation(data.conversation)
-        this.unreadCount = data.unread_total ?? this.unreadCount
+        this.unreadCount = data.unread_total ?? totalUnreadConversations(this.conversations)
         return data
       } catch (error) {
-        this.removeMessage(conversationId, tempId)
+        this.replaceMessage(conversationId, tempId, {
+          ...optimisticMessage,
+          pending: false,
+          failed: true,
+        })
         throw error
       } finally {
         this.sending = false
       }
+    },
+
+    async retryMessage(message) {
+      if (!this.activeConversationId || !message?.body?.trim()) {
+        return null
+      }
+
+      if (message?.id) {
+        this.removeMessage(this.activeConversationId, message.id)
+      }
+
+      return this.sendMessage(message.body)
     },
 
     async markConversationRead(conversationId = this.activeConversationId) {
@@ -178,7 +208,7 @@ export const useChatStore = defineStore('chat', {
 
       const { data } = await api.post(`/conversations/${conversationId}/read`)
       this.setConversationUnread(conversationId, data.unread_count || 0)
-      this.unreadCount = data.unread_total ?? this.unreadCount
+      this.unreadCount = data.unread_total ?? totalUnreadConversations(this.conversations)
       return data
     },
 
@@ -315,12 +345,10 @@ export const useChatStore = defineStore('chat', {
         this.fetchConversations(this.search)
       }
 
-      if (isNewMessage && incoming.sender.id !== session.user?.id && this.activeConversationId !== payload.conversation_id) {
-        this.unreadCount += 1
-      }
-
       if (isNewMessage && this.activeConversationId === payload.conversation_id && incoming.sender.id !== session.user?.id) {
         this.markConversationRead(payload.conversation_id)
+      } else {
+        this.syncUnreadCount()
       }
     },
 
@@ -329,6 +357,7 @@ export const useChatStore = defineStore('chat', {
 
       if (payload.read_by_user_id === session.user?.id) {
         this.setConversationUnread(payload.conversation_id, 0)
+        this.syncUnreadCount()
         return
       }
 
@@ -347,6 +376,8 @@ export const useChatStore = defineStore('chat', {
           is_read: true,
         }
       }
+
+      this.syncUnreadCount()
     },
 
     upsertConversation(conversation) {
@@ -370,6 +401,10 @@ export const useChatStore = defineStore('chat', {
       if (conversation) {
         conversation.unread_count = unreadCount
       }
+    },
+
+    syncUnreadCount() {
+      this.unreadCount = totalUnreadConversations(this.conversations)
     },
 
     replaceMessage(conversationId, tempId, message) {

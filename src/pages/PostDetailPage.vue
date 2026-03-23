@@ -152,25 +152,129 @@
               <q-chip square class="theme-chip theme-chip-secondary">{{ post.comments_count || 0 }} total</q-chip>
             </div>
 
-            <div v-if="post.comments?.length" class="compact-list feed-comment-list">
+            <div v-if="post.comments?.length" class="compact-list feed-comment-list post-detail-comment-list">
               <div
                 v-for="comment in post.comments"
                 :key="comment.id"
                 class="stack-card q-pa-md feed-comment-card post-detail-comment"
               >
                 <div class="feed-comment-head">
-                  <div class="text-caption text-weight-bold">{{ comment.user?.name }}</div>
-                  <div class="card-meta">@{{ comment.user?.username || 'builder' }}</div>
+                  <router-link
+                    :to="commentProfileTarget(comment.user?.username)"
+                    class="feed-comment-author"
+                  >
+                    <q-avatar size="38px" class="feed-comment-author__avatar" color="primary" text-color="white">
+                      <img v-if="comment.user?.avatar_url" :src="comment.user.avatar_url" :alt="comment.user?.name || 'Comment avatar'" />
+                      <span v-else>{{ comment.user?.name?.charAt(0) || '?' }}</span>
+                    </q-avatar>
+                    <div class="feed-comment-head__copy">
+                      <div class="feed-comment-author__name">{{ comment.user?.name }}</div>
+                      <div class="card-meta">@{{ comment.user?.username || 'builder' }}</div>
+                      <div class="card-meta">{{ formatRelative(comment.created_at) }}</div>
+                    </div>
+                  </router-link>
+                  <div class="feed-comment-actions">
+                    <q-btn
+                      flat
+                      dense
+                      no-caps
+                      color="primary"
+                      class="post-detail-comment__reply-btn"
+                      icon="reply"
+                      label="Reply"
+                      :disable="!session.isAuthenticated"
+                      @click="startReply(comment)"
+                    />
+                    <q-btn
+                      v-if="isCommentOwner(comment)"
+                      flat
+                      round
+                      dense
+                      color="grey-6"
+                      icon="more_horiz"
+                    >
+                      <q-menu auto-close class="theme-dialog">
+                        <q-list dense style="min-width: 140px">
+                          <q-item clickable @click="startCommentEdit(comment)">
+                            <q-item-section>Edit</q-item-section>
+                          </q-item>
+                          <q-item clickable class="text-negative" @click="removeComment(comment)">
+                            <q-item-section>Delete</q-item-section>
+                          </q-item>
+                        </q-list>
+                      </q-menu>
+                    </q-btn>
+                  </div>
                 </div>
-                <div class="text-body2 q-mt-sm">{{ comment.body }}</div>
+                <div v-if="editingCommentId === comment.id" class="feed-comment-editor q-mt-sm">
+                  <q-input
+                    v-model="editingDraft"
+                    outlined
+                    dense
+                    autogrow
+                    class="input-surface"
+                    label="Edit comment"
+                  />
+                  <div class="feed-comment-editor__actions">
+                    <q-btn flat no-caps color="grey-6" label="Cancel" @click="cancelCommentEdit" />
+                    <q-btn color="primary" no-caps label="Save" :loading="Boolean(commentEditing[comment.id])" @click="saveCommentEdit(comment)" />
+                  </div>
+                </div>
+                <div v-else class="text-body2 q-mt-sm">{{ comment.body }}</div>
                 <div v-if="comment.replies?.length" class="q-mt-sm post-detail-replies">
                   <div
                     v-for="reply in comment.replies"
                     :key="reply.id"
                     class="post-detail-reply"
                   >
-                    <strong>{{ reply.user?.name }}</strong>
-                    <span class="muted-text"> {{ reply.body }}</span>
+                    <div class="post-detail-reply__head">
+                      <router-link
+                        :to="commentProfileTarget(reply.user?.username)"
+                        class="feed-comment-author feed-comment-author--inline"
+                        >
+                          <q-avatar size="28px" class="feed-comment-author__avatar" color="primary" text-color="white">
+                          <img v-if="reply.user?.avatar_url" :src="reply.user.avatar_url" :alt="reply.user?.name || 'Reply avatar'" />
+                          <span v-else>{{ reply.user?.name?.charAt(0) || '?' }}</span>
+                        </q-avatar>
+                        <span class="feed-comment-author__name">{{ reply.user?.name }}</span>
+                        <span class="card-meta">@{{ reply.user?.username || 'builder' }}</span>
+                        <span class="card-meta">{{ formatRelative(reply.created_at) }}</span>
+                      </router-link>
+                      <q-btn
+                        v-if="isCommentOwner(reply)"
+                        flat
+                        round
+                        dense
+                        color="grey-6"
+                        icon="more_horiz"
+                      >
+                        <q-menu auto-close class="theme-dialog">
+                          <q-list dense style="min-width: 140px">
+                            <q-item clickable @click="startCommentEdit(reply)">
+                              <q-item-section>Edit</q-item-section>
+                            </q-item>
+                            <q-item clickable class="text-negative" @click="removeComment(reply)">
+                              <q-item-section>Delete</q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-menu>
+                      </q-btn>
+                    </div>
+                    <div v-if="editingCommentId === reply.id" class="feed-comment-editor q-mt-sm">
+                      <q-input
+                        v-model="editingDraft"
+                        outlined
+                        dense
+                        autogrow
+                        class="input-surface"
+                        label="Edit reply"
+                      />
+                      <div class="feed-comment-editor__actions">
+                        <q-btn flat no-caps color="grey-6" label="Cancel" @click="cancelCommentEdit" />
+                        <q-btn color="primary" no-caps label="Save" :loading="Boolean(commentEditing[reply.id])" @click="saveCommentEdit(reply)" />
+                      </div>
+                    </div>
+                    <div v-else class="muted-text q-mt-xs">{{ reply.body }}</div>
                   </div>
                 </div>
               </div>
@@ -181,7 +285,7 @@
               <div class="text-body2 muted-text q-mt-xs">Start the discussion with feedback, context, or a useful follow-up.</div>
             </div>
 
-            <div class="feed-comment-compose row q-col-gutter-sm q-mt-md">
+            <div class="feed-comment-compose row q-col-gutter-sm q-mt-md post-detail-comment-compose">
               <div class="col-auto">
                 <q-avatar size="40px" color="primary" text-color="white">
                   <img v-if="session.user?.avatar_url" :src="session.user.avatar_url" :alt="session.user?.name || 'Profile photo'" />
@@ -189,13 +293,20 @@
                 </q-avatar>
               </div>
               <div class="col">
+                <div v-if="replyTarget" class="post-detail-reply-draft q-mb-sm">
+                  <div>
+                    <div class="section-label">Replying to {{ replyTarget.user?.name }}</div>
+                    <div class="card-meta">{{ replyTarget.body }}</div>
+                  </div>
+                  <q-btn flat round dense icon="close" color="grey-5" @click="clearReply" />
+                </div>
                 <q-input
                   v-model="commentDraft"
                   outlined
                   dense
                   autogrow
                   class="input-surface"
-                  label="Add a comment"
+                  :label="replyTarget ? 'Write a reply' : 'Add a comment'"
                   :disable="!session.isAuthenticated"
                 />
               </div>
@@ -203,7 +314,7 @@
                 <q-btn
                   color="primary"
                   no-caps
-                  label="Comment"
+                  :label="replyTarget ? 'Reply' : 'Comment'"
                   :loading="commenting"
                   :disable="!session.isAuthenticated || !commentDraft || commenting"
                   @click="submitComment"
@@ -294,6 +405,10 @@ const session = useSessionStore()
 const loading = ref(false)
 const post = ref(null)
 const commentDraft = ref('')
+const replyTarget = ref(null)
+const editingCommentId = ref(null)
+const editingDraft = ref('')
+const commentEditing = ref({})
 const liking = ref(false)
 const bookmarking = ref(false)
 const commenting = ref(false)
@@ -424,18 +539,166 @@ async function submitComment() {
   commenting.value = true
 
   try {
-    const comment = await community.commentOnPost(post.value.id, commentDraft.value)
-    post.value = {
-      ...post.value,
-      comments: [comment, ...(post.value.comments || [])],
-      comments_count: (post.value.comments_count || 0) + 1,
+    const comment = await community.commentOnPost(post.value.id, commentDraft.value, replyTarget.value?.id || null)
+
+    if (replyTarget.value) {
+      post.value = {
+        ...post.value,
+        comments: (post.value.comments || []).map((item) => (
+          item.id === replyTarget.value.id
+            ? {
+                ...item,
+                replies: [comment, ...(item.replies || [])],
+              }
+            : item
+        )),
+        comments_count: (post.value.comments_count || 0) + 1,
+      }
+    } else {
+      post.value = {
+        ...post.value,
+        comments: [comment, ...(post.value.comments || [])],
+        comments_count: (post.value.comments_count || 0) + 1,
+      }
     }
+
     commentDraft.value = ''
+    replyTarget.value = null
   } catch (error) {
     $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to add comment' })
   } finally {
     commenting.value = false
   }
+}
+
+function startReply(comment) {
+  replyTarget.value = comment
+}
+
+function clearReply() {
+  replyTarget.value = null
+}
+
+function commentProfileTarget(username) {
+  return username ? (isMobileShell.value ? `/m/u/${username}` : `/u/${username}`) : backTarget.value
+}
+
+function isCommentOwner(comment) {
+  return Boolean(session.user?.id && comment?.user_id === session.user.id)
+}
+
+function startCommentEdit(comment) {
+  editingCommentId.value = comment.id
+  editingDraft.value = comment.body || ''
+}
+
+function cancelCommentEdit() {
+  editingCommentId.value = null
+  editingDraft.value = ''
+}
+
+function updateCommentTree(comments = [], updatedComment) {
+  return (comments || []).map((comment) => {
+    if (comment.id === updatedComment.id) {
+      return {
+        ...comment,
+        ...updatedComment,
+      }
+    }
+
+    if (comment.replies?.length) {
+      return {
+        ...comment,
+        replies: updateCommentTree(comment.replies, updatedComment),
+      }
+    }
+
+    return comment
+  })
+}
+
+function removeCommentFromTree(comments = [], commentId) {
+  let removedCount = 0
+
+  const nextComments = (comments || [])
+    .filter((comment) => {
+      if (comment.id === commentId) {
+        removedCount += 1 + (comment.replies?.length || 0)
+        return false
+      }
+
+      return true
+    })
+    .map((comment) => {
+      if (!comment.replies?.length) {
+        return comment
+      }
+
+      const result = removeCommentFromTree(comment.replies, commentId)
+      removedCount += result.removedCount
+
+      return {
+        ...comment,
+        replies: result.comments,
+      }
+    })
+
+  return {
+    comments: nextComments,
+    removedCount,
+  }
+}
+
+async function saveCommentEdit(comment) {
+  if (!editingDraft.value?.trim() || commentEditing.value[comment.id]) {
+    return
+  }
+
+  commentEditing.value[comment.id] = true
+
+  try {
+    const updated = await community.updatePostComment(comment.id, editingDraft.value.trim())
+    post.value = {
+      ...post.value,
+      comments: updateCommentTree(post.value.comments || [], updated),
+    }
+    cancelCommentEdit()
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to update comment' })
+  } finally {
+    commentEditing.value[comment.id] = false
+  }
+}
+
+function removeComment(comment) {
+  $q.dialog({
+    title: 'Delete comment?',
+    message: 'This will remove the comment and any replies under it.',
+    cancel: true,
+    persistent: true,
+    ok: { color: 'negative', label: 'Delete', noCaps: true },
+    cancelLabel: 'Cancel',
+  }).onOk(async () => {
+    try {
+      await community.deletePostComment(comment.id)
+      const result = removeCommentFromTree(post.value.comments || [], comment.id)
+      post.value = {
+        ...post.value,
+        comments: result.comments,
+        comments_count: Math.max(0, (post.value.comments_count || 0) - result.removedCount),
+      }
+
+      if (replyTarget.value?.id === comment.id) {
+        clearReply()
+      }
+
+      if (editingCommentId.value === comment.id) {
+        cancelCommentEdit()
+      }
+    } catch (error) {
+      $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to delete comment' })
+    }
+  })
 }
 
 watch(() => route.params.id, loadPost)

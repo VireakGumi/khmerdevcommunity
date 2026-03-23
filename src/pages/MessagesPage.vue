@@ -3,12 +3,12 @@
     <div class="chat-page-shell">
       <div class="chat-workspace">
         <aside v-if="!isCompactScreen || !chat.activeConversation" class="chat-sidebar">
-          <div class="chat-sidebar__toolbar">
+          <div class="chat-sidebar__toolbar kdc-page-head">
             <div>
               <div class="section-label">Inbox</div>
               <div class="text-subtitle1 text-weight-bold q-mt-xs">Chats</div>
             </div>
-            <div class="chat-sidebar__actions">
+            <div class="chat-sidebar__actions kdc-page-head__actions kdc-action-cluster">
               <q-chip square class="theme-chip theme-chip-secondary">Unread {{ chat.unreadCount }}</q-chip>
               <q-btn no-caps color="primary" unelevated icon="edit_square" label="New chat" class="chat-sidebar__new-chat">
                 <q-menu class="glass-panel panel-card" anchor="bottom right" self="top right">
@@ -59,6 +59,7 @@
             :mobile="isCompactScreen"
             :focus-search-key="conversationSearchKey"
             @send="sendMessage"
+            @retry="retryMessage"
             @back="closeConversation"
             @toggle-details="detailsOpen = !detailsOpen"
           />
@@ -182,6 +183,14 @@ async function sendMessage(body) {
     await chat.sendMessage(body)
   } catch (error) {
     $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to send message' })
+  }
+}
+
+async function retryMessage(message) {
+  try {
+    await chat.retryMessage(message)
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to retry message' })
   }
 }
 

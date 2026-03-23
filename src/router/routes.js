@@ -44,6 +44,18 @@ const routes = [
         meta: { title: 'Settings', requiresAuth: true },
       },
       {
+        path: 'admin/donations',
+        name: 'admin-donations',
+        component: () => import('pages/AdminDonationsPage.vue'),
+        meta: { title: 'Admin Donations', requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: 'admin/reports',
+        name: 'admin-reports',
+        component: () => import('pages/AdminReportsPage.vue'),
+        meta: { title: 'Admin Reports', requiresAuth: true, requiresAdmin: true },
+      },
+      {
         path: 'portfolio',
         name: 'portfolio',
         component: () => import('pages/MyPortfolioPage.vue'),
