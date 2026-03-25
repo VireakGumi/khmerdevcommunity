@@ -31,16 +31,16 @@
     <template v-else>
     <div class="page-intro q-mb-lg">
       <div>
-        <div class="section-label khmer-copy">Project Launchpad</div>
-        <div class="text-h4 text-weight-bold q-mt-sm">Projects, repositories, and collaboration signals in one directory</div>
-        <div class="text-body2 muted-text q-mt-sm">Expose serious work, show the stack, and make collaboration intent clear without turning the page into a dump of links.</div>
+        <div class="section-label khmer-copy">{{ $t('projectsPage.pageLabel') }}</div>
+        <div class="text-h4 text-weight-bold q-mt-sm">{{ $t('projectsPage.pageTitle') }}</div>
+        <div class="text-body2 muted-text q-mt-sm">{{ $t('projectsPage.pageCopy') }}</div>
       </div>
       <div class="page-actions">
         <q-btn
           color="primary"
           no-caps
           icon="rocket_launch"
-          label="Add project"
+          :label="$t('projectsPage.addProject')"
           :disable="!session.isAuthenticated"
           @click="dialogOpen = true"
         />
@@ -50,22 +50,22 @@
     <div class="content-card q-pa-lg q-mb-lg">
       <div class="row items-center justify-between">
         <div>
-          <div class="section-label khmer-copy">Project Launchpad</div>
-          <div class="text-h6 text-weight-bold q-mt-sm">Submit projects and find collaborators</div>
-          <div class="text-body2 muted-text q-mt-sm">Expose serious work, show the stack, and signal clearly when collaborators are needed.</div>
+          <div class="section-label khmer-copy">{{ $t('projectsPage.pageLabel') }}</div>
+          <div class="text-h6 text-weight-bold q-mt-sm">{{ $t('projectsPage.stageTitle') }}</div>
+          <div class="text-body2 muted-text q-mt-sm">{{ $t('projectsPage.stageCopy') }}</div>
         </div>
       </div>
       <div class="summary-grid q-mt-lg">
         <div class="inline-stat">
-          <div class="card-meta">Projects</div>
+          <div class="card-meta">{{ $t('projectsPage.projects') }}</div>
           <div class="text-h6 text-weight-bold q-mt-xs">{{ projects.length }}</div>
         </div>
         <div class="inline-stat">
-          <div class="card-meta">Open To Collaborate</div>
+          <div class="card-meta">{{ $t('projectsPage.openToCollaborate') }}</div>
           <div class="text-h6 text-weight-bold q-mt-xs">{{ openCollabCount }}</div>
         </div>
         <div class="inline-stat">
-          <div class="card-meta">Stacks</div>
+          <div class="card-meta">{{ $t('projectsPage.stacks') }}</div>
           <div class="text-h6 text-weight-bold q-mt-xs">{{ stackCount }}</div>
         </div>
       </div>
@@ -76,7 +76,9 @@
         <div class="content-card q-pa-lg full-height">
           <div class="utility-card__head">
             <div>
-              <div class="card-title">{{ project.name }}</div>
+              <div class="card-title">
+                <router-link :to="projectTarget(project)" class="post-detail-link">{{ project.name }}</router-link>
+              </div>
               <div class="text-body1 muted-text q-mt-sm">{{ project.tagline }}</div>
             </div>
             <q-chip square class="theme-chip theme-chip-warning">{{ project.status }}</q-chip>
@@ -87,17 +89,17 @@
               {{ tech }}
             </q-chip>
             <q-chip v-if="project.looking_for_collaborators" square class="theme-chip theme-chip-success">
-              Looking for collaborators
+              {{ $t('projectsPage.lookingForCollaborators') }}
             </q-chip>
           </div>
           <div class="utility-card__meta q-mt-lg">
-            <span class="card-meta">By {{ project.user.name }}</span>
-            <span class="card-meta">{{ project.contributors_count }} contributors</span>
-            <span class="card-meta">{{ project.stars_count }} stars</span>
+            <span class="card-meta">{{ $t('projectsPage.byUser', { name: project.user.name }) }}</span>
+            <span class="card-meta">{{ project.contributors_count }} {{ $t('projectsPage.contributors') }}</span>
+            <span class="card-meta">{{ project.stars_count }} {{ $t('projectsPage.stars') }}</span>
           </div>
           <div class="card-divider q-mt-lg q-mb-md" />
           <div class="row items-center justify-between">
-            <div class="card-meta">{{ project.repo_url ? 'Repository linked' : 'No repository yet' }}</div>
+            <div class="card-meta">{{ project.repo_url ? $t('projectsPage.repositoryLinked') : $t('projectsPage.noRepository') }}</div>
             <div class="row items-center q-gutter-sm">
               <q-btn
                 v-if="session.isAuthenticated"
@@ -105,10 +107,11 @@
                 no-caps
                 :color="project.is_saved ? 'secondary' : 'grey-5'"
                 :icon="project.is_saved ? 'bookmark' : 'bookmark_border'"
-                label="Save"
+                :label="$t('feed.save')"
                 @click="toggleBookmark(project.id)"
               />
-              <q-btn v-if="project.repo_url" flat no-caps color="secondary" icon="north_east" label="Open repo" :href="project.repo_url" target="_blank" />
+              <q-btn flat no-caps color="primary" icon="visibility" :label="$t('search.open')" :to="projectTarget(project)" />
+              <q-btn v-if="project.repo_url" flat no-caps color="secondary" icon="north_east" :label="$t('projectDetail.openRepo')" :href="project.repo_url" target="_blank" />
             </div>
           </div>
         </div>
@@ -118,8 +121,8 @@
     <q-dialog v-model="dialogOpen">
       <q-card class="theme-dialog">
         <q-card-section>
-          <div class="section-label khmer-copy">Submit Project</div>
-          <div class="text-h6 text-weight-bold q-mt-sm">Add a project to the directory</div>
+          <div class="section-label khmer-copy">{{ $t('projectsPage.submitProject') }}</div>
+          <div class="text-h6 text-weight-bold q-mt-sm">{{ $t('projectsPage.submitTitle') }}</div>
         </q-card-section>
         <q-card-section class="q-gutter-md">
           <q-input v-model="projectForm.name" outlined class="input-surface" label="Project name" />
@@ -130,15 +133,15 @@
           <q-input v-model="stackText" outlined class="input-surface" label="Tech stack (comma separated)" />
           <div class="settings-toggle-row">
             <div class="settings-toggle-row__copy">
-              <strong>Looking for collaborators</strong>
-              <span>Show this project as open to contributors and collaborators.</span>
+              <strong>{{ $t('projectsPage.lookingForCollaborators') }}</strong>
+              <span>{{ $t('projectsPage.collaboratorCopy') }}</span>
             </div>
             <q-toggle v-model="projectForm.looking_for_collaborators" />
           </div>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat no-caps color="secondary" label="Cancel" v-close-popup />
-          <q-btn color="primary" no-caps label="Publish project" :loading="submitting" @click="submitProject" />
+          <q-btn flat no-caps color="secondary" :label="$t('feed.cancel')" v-close-popup />
+          <q-btn color="primary" no-caps :label="$t('projectsPage.publishProject')" :loading="submitting" @click="submitProject" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -149,10 +152,14 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useCommunityStore } from 'src/stores/community-store'
 import { useSessionStore } from 'src/stores/session-store'
 
 const $q = useQuasar()
+const route = useRoute()
+const { t } = useI18n()
 const community = useCommunityStore()
 const session = useSessionStore()
 
@@ -172,6 +179,10 @@ const projectForm = reactive({
 const projects = computed(() => community.projects)
 const openCollabCount = computed(() => projects.value.filter((project) => project.looking_for_collaborators).length)
 const stackCount = computed(() => new Set(projects.value.flatMap((project) => project.tech_stack || [])).size)
+
+function projectTarget(project) {
+  return route.meta.mobileShell ? `/m/projects/${project.slug}` : `/projects/${project.slug}`
+}
 
 onMounted(async () => {
   loading.value = true
@@ -200,9 +211,9 @@ async function submitProject() {
     })
     stackText.value = ''
     dialogOpen.value = false
-    $q.notify({ type: 'positive', message: 'Project added' })
+    $q.notify({ type: 'positive', message: t('projectsPage.projectAdded') })
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to add project' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('projectsPage.addFailed') })
   } finally {
     submitting.value = false
   }
@@ -212,7 +223,7 @@ async function toggleBookmark(projectId) {
   try {
     await community.toggleProjectBookmark(projectId)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to save project' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('projectDetail.saveFailed') })
   }
 }
 </script>

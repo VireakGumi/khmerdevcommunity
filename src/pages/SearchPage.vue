@@ -2,9 +2,9 @@
   <q-page padding>
     <div class="page-intro q-mb-lg">
       <div>
-        <div class="section-label">Search</div>
-        <div class="text-h4 text-weight-bold q-mt-sm">Search posts, builders, projects, and events</div>
-        <div class="text-body2 muted-text q-mt-sm">A stronger search experience with clearer tabs, smarter sorting, and easier-to-scan results.</div>
+        <div class="section-label">{{ $t('search.pageLabel') }}</div>
+        <div class="text-h4 text-weight-bold q-mt-sm">{{ $t('search.pageTitle') }}</div>
+        <div class="text-body2 muted-text q-mt-sm">{{ $t('search.pageCopy') }}</div>
       </div>
     </div>
 
@@ -15,19 +15,33 @@
             v-model="query"
             outlined
             class="input-surface"
-            label="Search everything"
-            placeholder="Laravel, Roeun Vireak, OSS Radar, meetup..."
+            :label="$t('search.inputLabel')"
+            :placeholder="$t('search.inputPlaceholder')"
             @keyup.enter="submitSearch"
           >
             <template #prepend><q-icon name="search" /></template>
           </q-input>
         </div>
         <div class="col-6 col-lg-2">
-          <q-select v-model="sortBy" outlined dense emit-value map-options class="input-surface" label="Sort" :options="sortOptions" />
+          <q-select v-model="sortBy" outlined dense emit-value map-options class="input-surface" :label="$t('search.sortLabel')" :options="sortOptions" />
         </div>
         <div class="col-6 col-lg-auto">
-          <q-btn color="primary" no-caps label="Search" :loading="searching" @click="submitSearch" />
+          <q-btn color="primary" no-caps :label="$t('search.searchButton')" :loading="searching" @click="submitSearch" />
         </div>
+      </div>
+
+      <div class="search-filter-row q-mt-md">
+        <q-chip
+          v-for="filter in quickFilters"
+          :key="filter.value"
+          clickable
+          :outline="activeFilter !== filter.value"
+          :color="activeFilter === filter.value ? 'primary' : 'secondary'"
+          :text-color="activeFilter === filter.value ? 'white' : undefined"
+          @click="toggleFilter(filter.value)"
+        >
+          {{ filter.label }}
+        </q-chip>
       </div>
 
       <q-tabs v-if="results.query" v-model="activeTab" dense no-caps inline-label class="feed-tabs q-mt-md">
@@ -43,16 +57,23 @@
       </div>
     </div>
 
-    <div v-else-if="results.query && !activeItems.length" class="content-card q-pa-xl utility-empty text-center">
-      <div class="text-h6 text-weight-bold">No results found</div>
-      <div class="text-body2 muted-text q-mt-sm">Try broader keywords, switch tabs, or search for a person, stack, event, or project name.</div>
+    <div v-else-if="results.query && !filteredItems.length" class="content-card q-pa-xl utility-empty text-center">
+      <div class="text-h6 text-weight-bold">{{ $t('search.noResultsTitle') }}</div>
+      <div class="text-body2 muted-text q-mt-sm">{{ $t('search.noResultsCopy') }}</div>
     </div>
 
     <div v-else-if="results.query" class="search-results-layout">
       <div class="content-card q-pa-lg">
         <div class="portfolio-section-head">
           <div class="section-label">{{ activeTabLabel }}</div>
-          <h2 class="portfolio-section-title">{{ activeItems.length }} results</h2>
+          <h2 class="portfolio-section-title">{{ filteredItems.length }} {{ $t('search.results') }}</h2>
+        </div>
+
+        <div class="search-summary-grid q-mt-md">
+          <div v-for="metric in summaryMetrics" :key="metric.label" class="search-summary-card">
+            <div class="search-summary-card__value">{{ metric.value }}</div>
+            <div class="search-summary-card__label">{{ metric.label }}</div>
+          </div>
         </div>
 
         <transition-group name="feed-stack" tag="div" class="utility-list q-mt-md">
@@ -62,7 +83,7 @@
                 <div class="mini-card-title" v-html="highlightText(resultTitle(item))" />
                 <div v-if="resultSubtitle(item)" class="mini-card-copy q-mt-xs" v-html="highlightText(resultSubtitle(item))" />
               </div>
-              <q-btn flat no-caps color="secondary" label="Open" :to="resultLink(item)" />
+              <q-btn flat no-caps color="secondary" :label="$t('search.open')" :to="resultLink(item)" />
             </div>
             <div v-if="resultSummary(item)" class="mini-card-copy" v-html="highlightText(resultSummary(item))" />
             <div class="utility-card__meta">
@@ -71,18 +92,18 @@
           </div>
         </transition-group>
 
-        <div v-if="activeItems.length > visibleItems.length" class="text-center q-mt-lg">
-          <q-btn outline color="primary" no-caps label="Load more results" @click="loadMore" />
+        <div v-if="filteredItems.length > visibleItems.length" class="text-center q-mt-lg">
+          <q-btn outline color="primary" no-caps :label="$t('search.loadMore')" @click="loadMore" />
         </div>
       </div>
 
       <div class="content-card q-pa-lg search-side-card">
-        <div class="section-label">Search Guide</div>
-        <div class="text-h6 text-weight-bold q-mt-md">Search the whole product graph</div>
-        <div class="text-body2 muted-text q-mt-sm">Use names for people, stack terms for jobs and projects, and event keywords for meetups or launches.</div>
+        <div class="section-label">{{ $t('search.guideLabel') }}</div>
+        <div class="text-h6 text-weight-bold q-mt-md">{{ $t('search.guideTitle') }}</div>
+        <div class="text-body2 muted-text q-mt-sm">{{ $t('search.guideCopy') }}</div>
         <div class="utility-list q-mt-md">
           <div class="utility-card">
-            <div class="mini-card-title">Try keywords</div>
+            <div class="mini-card-title">{{ $t('search.tryKeywords') }}</div>
             <div class="utility-card__meta">
               <span class="card-meta">Laravel</span>
               <span class="card-meta">Remote</span>
@@ -91,7 +112,11 @@
             </div>
           </div>
           <div class="utility-card">
-            <div class="mini-card-title">Current query</div>
+            <div class="mini-card-title">{{ $t('search.currentMode') }}</div>
+            <div class="mini-card-copy">{{ activeFilterLabel }}</div>
+          </div>
+          <div class="utility-card">
+            <div class="mini-card-title">{{ $t('search.currentQuery') }}</div>
             <div class="mini-card-copy">{{ results.query }}</div>
           </div>
         </div>
@@ -103,31 +128,43 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useCommunityStore } from 'src/stores/community-store'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const community = useCommunityStore()
 
 const query = ref(route.query.q || '')
 const searching = ref(false)
 const activeTab = ref('all')
-const sortBy = ref('relevance')
+const sortBy = ref(route.query.sort || 'relevance')
+const activeFilter = ref(route.query.filter || 'all')
 const visibleCount = ref(8)
 
-const searchTabs = [
-  { label: 'All', value: 'all' },
-  { label: 'Posts', value: 'posts' },
-  { label: 'Projects', value: 'projects' },
-  { label: 'Developers', value: 'developers' },
-  { label: 'Events', value: 'events' },
-  { label: 'Jobs', value: 'jobs' },
-]
+const searchTabs = computed(() => [
+  { label: t('search.all'), value: 'all' },
+  { label: t('search.posts'), value: 'posts' },
+  { label: t('search.projects'), value: 'projects' },
+  { label: t('search.developers'), value: 'developers' },
+  { label: t('search.events'), value: 'events' },
+  { label: t('search.jobs'), value: 'jobs' },
+])
 
-const sortOptions = [
-  { label: 'Relevance', value: 'relevance' },
-  { label: 'Latest', value: 'latest' },
-]
+const sortOptions = computed(() => [
+  { label: t('search.relevance'), value: 'relevance' },
+  { label: t('search.latest'), value: 'latest' },
+  { label: t('search.popular'), value: 'popular' },
+])
+
+const quickFilters = computed(() => [
+  { label: t('search.allResults'), value: 'all' },
+  { label: t('search.remoteJobs'), value: 'remote' },
+  { label: t('search.onlineEvents'), value: 'online' },
+  { label: t('search.openToWork'), value: 'available' },
+  { label: t('search.popularWork'), value: 'popular' },
+])
 
 const results = computed(() => ({
   query: community.searchQuery,
@@ -146,33 +183,40 @@ const allResults = computed(() => [
   ...results.value.jobs.items.map((item) => ({ ...item, __type: 'jobs' })),
 ])
 
-const activeItems = computed(() => {
-  const items = activeTab.value === 'all' ? allResults.value : results.value[activeTab.value].items.map((item) => ({ ...item, __type: activeTab.value }))
+const activeItems = computed(() => (
+  activeTab.value === 'all'
+    ? allResults.value
+    : results.value[activeTab.value].items.map((item) => ({ ...item, __type: activeTab.value }))
+))
 
-  if (sortBy.value === 'latest') {
-    return [...items].sort((a, b) => new Date(b.created_at || b.starts_at || 0).getTime() - new Date(a.created_at || a.starts_at || 0).getTime())
-  }
-
-  return items
-})
-
-const visibleItems = computed(() => activeItems.value.slice(0, visibleCount.value))
+const filteredItems = computed(() => activeItems.value.filter((item) => matchesFilter(item)))
+const visibleItems = computed(() => filteredItems.value.slice(0, visibleCount.value))
 const hasResults = computed(() => allResults.value.length > 0)
-const activeTabLabel = computed(() => searchTabs.find((tab) => tab.value === activeTab.value)?.label || 'Results')
+const activeTabLabel = computed(() => searchTabs.value.find((tab) => tab.value === activeTab.value)?.label || t('search.results'))
+const activeFilterLabel = computed(() => quickFilters.value.find((filter) => filter.value === activeFilter.value)?.label || t('search.allResults'))
+const summaryMetrics = computed(() => [
+  { label: t('search.visibleNow'), value: filteredItems.value.length },
+  { label: t('search.posts'), value: results.value.posts.total || 0 },
+  { label: t('search.projects'), value: results.value.projects.total || 0 },
+  { label: t('search.events'), value: results.value.events.total || 0 },
+  { label: t('search.jobs'), value: results.value.jobs.total || 0 },
+])
 
 watch(
-  () => route.query.q,
-  async (value) => {
+  () => [route.query.q, route.query.sort, route.query.filter],
+  async ([value, sort, filter]) => {
     if (!value) {
       return
     }
 
     query.value = value
+    sortBy.value = sort || 'relevance'
+    activeFilter.value = filter || 'all'
     visibleCount.value = 8
     searching.value = true
 
     try {
-      await community.search(value)
+      await community.search(value, { sort: sortBy.value })
     } finally {
       searching.value = false
     }
@@ -180,7 +224,7 @@ watch(
   { immediate: true },
 )
 
-watch([activeTab, sortBy], () => {
+watch([activeTab, sortBy, activeFilter], () => {
   visibleCount.value = 8
 })
 
@@ -191,6 +235,26 @@ function tabCount(tab) {
 
 function loadMore() {
   visibleCount.value += 8
+}
+
+function toggleFilter(value) {
+  activeFilter.value = activeFilter.value === value ? 'all' : value
+}
+
+function matchesFilter(item) {
+  if (activeFilter.value === 'all') return true
+  if (activeFilter.value === 'remote') return item.__type === 'jobs' && String(item.work_mode || '').toLowerCase().includes('remote')
+  if (activeFilter.value === 'online') return item.__type === 'events' && String(item.format || '').toLowerCase().includes('online')
+  if (activeFilter.value === 'available') return item.__type === 'developers' && Boolean(item.availability)
+  if (activeFilter.value === 'popular') {
+    if (item.__type === 'posts') return (item.likes_count || 0) > 0 || (item.comments_count || 0) > 0
+    if (item.__type === 'projects') return (item.stars_count || 0) > 0
+    if (item.__type === 'developers') return (item.followers_count || 0) > 0
+    if (item.__type === 'jobs') return (item.applications_count || 0) > 0
+    return true
+  }
+
+  return true
 }
 
 function escapeHtml(value = '') {
@@ -217,7 +281,7 @@ function resultTitle(item) {
 }
 
 function resultSubtitle(item) {
-  if (item.__type === 'developers') return `@${item.username} • ${item.followers_count || 0} followers`
+  if (item.__type === 'developers') return `@${item.username} · ${item.followers_count || 0} ${t('search.followers')}`
   if (item.__type === 'jobs') return item.company_name
   if (item.__type === 'projects') return item.tagline
   return item.topic || item.format || ''
@@ -229,26 +293,29 @@ function resultSummary(item) {
 
 function resultMeta(item) {
   if (item.__type === 'posts') return [item.user?.name, item.topic].filter(Boolean)
-  if (item.__type === 'projects') return [item.user?.name, `${item.stars_count || 0} stars`].filter(Boolean)
-  if (item.__type === 'developers') return [item.location || 'Cambodia', item.availability].filter(Boolean)
+  if (item.__type === 'projects') return [item.user?.name, `${item.stars_count || 0} ${t('saved.stars')}`].filter(Boolean)
+  if (item.__type === 'developers') return [item.location || t('search.cambodia'), item.availability].filter(Boolean)
   if (item.__type === 'events') return [item.city, item.format].filter(Boolean)
   if (item.__type === 'jobs') return [item.job_type, item.work_mode].filter(Boolean)
   return []
 }
 
 function resultLink(item) {
-  if (item.__type === 'developers') return `/u/${item.username}`
-  if (item.__type === 'jobs') return `/jobs/${item.slug}`
-  if (item.__type === 'events') return `/events/${item.id}`
-  if (item.__type === 'projects') return '/projects'
-  return '/feed'
+  if (item.__type === 'developers') return prefixedPath(`/u/${item.username}`)
+  if (item.__type === 'jobs') return prefixedPath(`/jobs/${item.slug}`)
+  if (item.__type === 'events') return prefixedPath(`/events/${item.id}`)
+  if (item.__type === 'projects') return prefixedPath(`/projects/${item.slug}`)
+  return prefixedPath(`/feed/${item.id}`)
 }
 
 async function submitSearch() {
   await router.push({
     path: route.meta.mobileShell ? '/m/search' : '/search',
-    query: { q: query.value },
+    query: { q: query.value, sort: sortBy.value, filter: activeFilter.value },
   })
 }
-</script>
 
+function prefixedPath(path) {
+  return route.meta.mobileShell ? `/m${path}` : path
+}
+</script>

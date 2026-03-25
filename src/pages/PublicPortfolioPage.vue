@@ -169,7 +169,7 @@ const activeTab = ref('overview')
 const commentDrafts = reactive({})
 
 const profile = computed(() => community.publicProfile)
-const isMobile = computed(() => $q.screen.lt.md)
+const isMobile = computed(() => $q.screen.width <= 640)
 const isOwnProfile = computed(() => session.user?.username === profile.value?.username)
 const isPremium = computed(() => profile.value?.portfolio_plan === 'premium')
 const canMessage = computed(() => session.isAuthenticated && !isOwnProfile.value && Boolean(profile.value?.id))

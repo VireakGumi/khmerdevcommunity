@@ -1,9 +1,9 @@
 <template>
   <div class="empty-conversation-state content-card">
     <q-icon name="mark_chat_unread" color="primary" size="30px" />
-    <div class="text-h6 text-weight-bold q-mt-md">Choose a conversation</div>
+    <div class="text-h6 text-weight-bold q-mt-md">{{ $t('messagesPage.chooseConversation') }}</div>
     <div class="text-body2 muted-text q-mt-sm">
-      Open an existing thread or start one with another developer to begin the conversation.
+      {{ $t('messagesPage.chooseConversationCopy') }}
     </div>
     <div class="q-mt-md chat-suggestion-grid">
       <q-btn
@@ -25,6 +25,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+useI18n()
+
 defineProps({
   developers: {
     type: Array,

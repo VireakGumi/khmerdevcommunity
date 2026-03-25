@@ -2,27 +2,27 @@
   <q-page padding>
     <div class="page-intro q-mb-lg">
       <div>
-        <div class="section-label">Jobs</div>
-        <div class="text-h4 text-weight-bold q-mt-sm">Developer roles, contracts, and internships</div>
-        <div class="text-body2 muted-text q-mt-sm">A focused jobs board for Khmer builders looking for full-time, freelance, and early-career opportunities.</div>
+        <div class="section-label">{{ $t('jobsPage.pageLabel') }}</div>
+        <div class="text-h4 text-weight-bold q-mt-sm">{{ $t('jobsPage.pageTitle') }}</div>
+        <div class="text-body2 muted-text q-mt-sm">{{ $t('jobsPage.pageCopy') }}</div>
       </div>
       <div class="page-actions">
-        <q-btn color="primary" no-caps icon="work" label="Post job" :disable="!session.isAuthenticated" @click="jobDialog = true" />
+        <q-btn color="primary" no-caps icon="work" :label="$t('jobsPage.postJob')" :disable="!session.isAuthenticated" @click="jobDialog = true" />
       </div>
     </div>
 
     <div v-if="session.isAuthenticated" class="content-card q-pa-sm q-mb-lg">
       <q-tabs v-model="activeView" dense no-caps inline-label class="feed-tabs">
-        <q-tab name="market" icon="work" label="Job board" />
-        <q-tab name="applied" icon="task_alt" label="Applied jobs" />
-        <q-tab name="posted" icon="badge" label="My listings" />
+        <q-tab name="market" icon="work" :label="$t('jobsPage.jobBoard')" />
+        <q-tab name="applied" icon="task_alt" :label="$t('jobsPage.appliedJobs')" />
+        <q-tab name="posted" icon="badge" :label="$t('jobsPage.myListings')" />
       </q-tabs>
     </div>
 
     <div v-if="activeView === 'market'" class="content-card q-pa-lg q-mb-lg">
       <div class="row q-col-gutter-md items-center">
         <div class="col-12 col-md">
-          <q-input v-model="filters.q" outlined class="input-surface" label="Search jobs" placeholder="Laravel, Vue, remote, internship..." @keyup.enter="loadJobs">
+          <q-input v-model="filters.q" outlined class="input-surface" :label="$t('jobsPage.searchJobs')" :placeholder="$t('jobsPage.searchPlaceholder')" @keyup.enter="loadJobs">
             <template #prepend><q-icon name="search" /></template>
           </q-input>
         </div>
@@ -36,7 +36,7 @@
           <q-select v-model="filters.experience_level" outlined dense emit-value map-options class="input-surface" label="Level" :options="levels" />
         </div>
         <div class="col-6 col-md-auto">
-          <q-btn color="primary" no-caps label="Apply filters" :loading="community.jobsLoading && !displayJobs.length" @click="loadJobs" />
+          <q-btn color="primary" no-caps :label="$t('jobsPage.applyFilters')" :loading="community.jobsLoading && !displayJobs.length" @click="loadJobs" />
         </div>
       </div>
     </div>
@@ -44,8 +44,8 @@
     <div v-if="activeView === 'market'" class="row q-col-gutter-lg">
       <div class="col-12 col-xl-8">
         <div v-if="displayJobs.length" class="jobs-range card-meta q-mb-md">
-          Showing {{ displayRangeStart }}-{{ displayRangeEnd }} of {{ totalJobs }} jobs
-          <span v-if="usingRelatedJobs"> · related to your skills</span>
+          {{ $t('jobsPage.showing') }} {{ displayRangeStart }}-{{ displayRangeEnd }} {{ $t('jobsPage.of') }} {{ totalJobs }} {{ $t('search.jobs') }}
+          <span v-if="usingRelatedJobs"> · {{ $t('jobsPage.relatedSkills') }}</span>
         </div>
 
         <div v-if="community.jobsLoading && !displayJobs.length" class="jobs-skeleton-stack">
@@ -76,7 +76,7 @@
         </div>
 
         <div v-else-if="!displayJobs.length" class="content-card q-pa-lg utility-empty">
-          No roles match the current filters yet.
+          {{ $t('jobsPage.noRoles') }}
         </div>
 
         <template v-else>
@@ -430,11 +430,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { useCommunityStore } from 'src/stores/community-store'
 import { useSessionStore } from 'src/stores/session-store'
 import { formatDate } from 'src/utils/formatters'
 
 const $q = useQuasar()
+const { t } = useI18n()
 const community = useCommunityStore()
 const session = useSessionStore()
 
@@ -625,7 +627,7 @@ function formatLevel(value) {
 function formatSalary(job) {
   const currency = job.salary_currency || 'USD'
 
-  if (!job.salary_min && !job.salary_max) return 'Salary not listed'
+  if (!job.salary_min && !job.salary_max) return ''
   if (job.salary_min && job.salary_max) return `${currency} ${job.salary_min}-${job.salary_max}`
 
   return `${currency} ${job.salary_min || job.salary_max}+`
@@ -645,7 +647,7 @@ async function toggleBookmark(jobId) {
   try {
     await community.toggleJobBookmark(jobId)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to save job' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('jobsPage.saveJobFailed') })
   } finally {
     bookmarkLoading[jobId] = false
   }
@@ -670,9 +672,9 @@ async function confirmApply() {
     await community.applyToJob(selectedJob.value.id)
     selectedJob.value.is_applied = true
     applyDialog.value = false
-    $q.notify({ type: 'positive', message: 'Application submitted' })
+    $q.notify({ type: 'positive', message: t('jobsPage.applicationSubmitted') })
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to apply' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('jobsPage.applyFailed') })
   } finally {
     applyLoading[selectedJob.value.id] = false
     applySubmitting.value = false
@@ -705,10 +707,10 @@ async function publishJob() {
       contact_email: '',
       tech_stack_text: '',
     })
-    $q.notify({ type: 'positive', message: 'Job published' })
+    $q.notify({ type: 'positive', message: t('jobsPage.jobPublished') })
     loadJobs()
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to publish job' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('jobsPage.jobPublishFailed') })
   } finally {
     publishing.value = false
   }
@@ -723,7 +725,7 @@ async function openApplicantsDashboard(job) {
     const data = await community.fetchJobApplicants(job.id)
     selectedApplicants.value = data.applicants || []
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to load applicants' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('jobsPage.loadApplicantsFailed') })
   }
 }
 
@@ -737,9 +739,9 @@ async function updateApplicantStatus(application, status) {
   try {
     const updated = await community.updateJobApplication(selectedPostedJob.value.id, application.id, { status })
     selectedApplicants.value = selectedApplicants.value.map((item) => (item.id === application.id ? updated : item))
-    $q.notify({ type: 'positive', message: `Applicant marked ${formatApplicationStatus(status)}` })
+    $q.notify({ type: 'positive', message: t('jobsPage.applicantMarked', { status: formatApplicationStatus(status) }) })
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to update applicant' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('jobsPage.applicantUpdateFailed') })
   } finally {
     applicantStatusLoading[application.id] = false
   }

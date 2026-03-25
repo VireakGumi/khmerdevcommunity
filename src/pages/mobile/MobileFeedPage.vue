@@ -1,15 +1,15 @@
 <template>
   <q-page class="q-pa-md q-pb-xl mobile-feed-page">
     <div class="content-card q-pa-md mobile-feed-hero">
-      <div class="section-label">Feed</div>
-      <div class="text-h6 text-weight-bold q-mt-sm">What Khmer builders are shipping right now</div>
-      <div class="text-body2 muted-text q-mt-sm">Fast scan first, deeper reading when something matters.</div>
+      <div class="section-label">{{ $t('nav.feed') }}</div>
+      <div class="text-h6 text-weight-bold q-mt-sm">{{ $t('mobileFeed.pageTitle') }}</div>
+      <div class="text-body2 muted-text q-mt-sm">{{ $t('mobileFeed.pageCopy') }}</div>
 
       <div class="row items-center justify-between q-col-gutter-sm q-mt-md">
         <div class="col">
           <q-tabs v-model="activeTab" dense no-caps class="feed-tabs mobile-feed-tabs">
-            <q-tab name="for-you" label="For you" />
-            <q-tab name="trending" label="Trending" />
+            <q-tab name="for-you" :label="$t('feed.forYou')" />
+            <q-tab name="trending" :label="$t('feed.trending')" />
           </q-tabs>
         </div>
         <div class="col-auto">
@@ -19,15 +19,15 @@
 
       <div class="summary-grid q-mt-md">
         <div class="inline-stat">
-          <div class="card-meta">Posts</div>
+          <div class="card-meta">{{ $t('home.posts') }}</div>
           <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ feed.length }}</div>
         </div>
         <div class="inline-stat">
-          <div class="card-meta">Pinned</div>
+          <div class="card-meta">{{ $t('feed.pinned') }}</div>
           <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ pinnedCount }}</div>
         </div>
         <div class="inline-stat">
-          <div class="card-meta">Topics</div>
+          <div class="card-meta">{{ $t('feed.topics') }}</div>
           <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ topicCount }}</div>
         </div>
       </div>
@@ -46,20 +46,20 @@
     </div>
 
     <div v-else-if="!feed.length" class="content-card q-pa-xl utility-empty q-mt-md">
-      <div class="text-subtitle1 text-weight-bold">No feed posts yet</div>
-      <div class="text-body2 muted-text q-mt-sm">Once builders publish updates, launches, and requests for feedback, they will show up here.</div>
-      <q-btn class="q-mt-md" color="primary" no-caps label="Create the first post" to="/m/post" />
+      <div class="text-subtitle1 text-weight-bold">{{ $t('mobileFeed.emptyTitle') }}</div>
+      <div class="text-body2 muted-text q-mt-sm">{{ $t('mobileFeed.emptyCopy') }}</div>
+      <q-btn class="q-mt-md" color="primary" no-caps :label="$t('mobileFeed.createFirstPost')" to="/m/post" />
     </div>
 
     <div v-else class="q-mt-md">
       <article v-for="post in feed" :key="post.id" class="stack-card q-pa-md q-mb-sm mobile-feed-card">
         <div class="row items-center justify-between no-wrap">
           <div class="min-w-0">
-            <div class="text-caption muted-text">@{{ post.user?.username || 'builder' }}</div>
+            <div class="text-caption muted-text">@{{ post.user?.username || $t('postDetail.builderFallback') }}</div>
             <div class="text-caption muted-text q-mt-xs">{{ formatRelative(post.published_at) }}</div>
           </div>
           <div class="row items-center q-gutter-xs">
-            <q-chip v-if="post.pinned" square dense class="theme-chip theme-chip-primary">Pinned</q-chip>
+            <q-chip v-if="post.pinned" square dense class="theme-chip theme-chip-primary">{{ $t('feed.pinned') }}</q-chip>
             <q-chip v-if="post.topic" square dense class="theme-chip">{{ post.topic }}</q-chip>
           </div>
         </div>
@@ -74,10 +74,10 @@
 
         <div class="row items-center justify-between q-mt-md text-caption muted-text">
           <div class="row q-gutter-md">
-            <span>{{ post.likes_count }} likes</span>
-            <span>{{ post.comments_count }} replies</span>
+            <span>{{ post.likes_count }} {{ $t('feed.likes') }}</span>
+            <span>{{ post.comments_count }} {{ $t('mobileFeed.replies') }}</span>
           </div>
-          <q-btn class="mobile-feed-open-btn" flat dense no-caps color="primary" icon="north_east" :label="$q.screen.lt.sm ? '' : 'Open'" :to="`/m/feed/${post.id}`" />
+          <q-btn class="mobile-feed-open-btn" flat dense no-caps color="primary" icon="north_east" :label="$q.screen.lt.sm ? '' : $t('search.open')" :to="`/m/feed/${post.id}`" />
         </div>
       </article>
     </div>

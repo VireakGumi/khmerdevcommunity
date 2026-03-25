@@ -5,15 +5,15 @@
         <aside v-if="!isCompactScreen || !chat.activeConversation" class="chat-sidebar">
           <div class="chat-sidebar__toolbar kdc-page-head">
             <div>
-              <div class="section-label">Inbox</div>
-              <div class="text-subtitle1 text-weight-bold q-mt-xs">Chats</div>
+              <div class="section-label">{{ $t('messagesPage.inbox') }}</div>
+              <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ $t('messagesPage.chats') }}</div>
             </div>
             <div class="chat-sidebar__actions kdc-page-head__actions kdc-action-cluster">
-              <q-chip square class="theme-chip theme-chip-secondary">Unread {{ chat.unreadCount }}</q-chip>
-              <q-btn no-caps color="primary" unelevated icon="edit_square" label="New chat" class="chat-sidebar__new-chat">
+              <q-chip square class="theme-chip theme-chip-secondary">{{ $t('messagesPage.unread') }} {{ chat.unreadCount }}</q-chip>
+              <q-btn no-caps color="primary" unelevated icon="edit_square" :label="$t('messagesPage.newChat')" class="chat-sidebar__new-chat">
                 <q-menu class="glass-panel panel-card" anchor="bottom right" self="top right">
                   <q-list style="min-width: 260px">
-                    <q-item-label header>Start a new conversation</q-item-label>
+                    <q-item-label header>{{ $t('messagesPage.startConversation') }}</q-item-label>
                     <q-item
                       v-for="developer in developerSuggestions"
                       :key="developer.id"
@@ -102,6 +102,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import ChatProfilePanel from 'src/components/chat/ChatProfilePanel.vue'
 import ConversationList from 'src/components/chat/ConversationList.vue'
 import ConversationPane from 'src/components/chat/ConversationPane.vue'
@@ -112,6 +113,7 @@ import { useCommunityStore } from 'src/stores/community-store'
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const chat = useChatStore()
 const community = useCommunityStore()
 let refreshTimerId = null
@@ -148,7 +150,7 @@ async function handleSearch(search) {
   try {
     await chat.fetchConversations(search)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to load conversations' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.loadConversationsFailed') })
   }
 }
 
@@ -158,7 +160,7 @@ async function openConversation(conversationId) {
     detailsOpen.value = false
     await router.replace({ query: { conversation: conversationId } })
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to open conversation' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.openConversationFailed') })
   }
 }
 
@@ -174,7 +176,7 @@ async function startConversation(recipientId) {
     const conversation = await chat.startConversation(recipientId)
     await openConversation(conversation.id)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to start conversation' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.startConversationFailed') })
   }
 }
 
@@ -182,7 +184,7 @@ async function sendMessage(body) {
   try {
     await chat.sendMessage(body)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to send message' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.sendMessageFailed') })
   }
 }
 
@@ -190,12 +192,12 @@ async function retryMessage(message) {
   try {
     await chat.retryMessage(message)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to retry message' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.retryMessageFailed') })
   }
 }
 
 function handleConversationAction(label) {
-  $q.notify({ type: 'info', message: `${label} is ready for the next product step.` })
+  $q.notify({ type: 'info', message: t('messagesPage.actionReady', { label }) })
 }
 
 function focusConversationSearch() {
@@ -207,7 +209,7 @@ function toggleMuteConversation() {
   mutedConversation.value = !mutedConversation.value
   $q.notify({
     type: 'info',
-    message: mutedConversation.value ? 'Conversation muted' : 'Conversation unmuted',
+    message: mutedConversation.value ? t('messagesPage.muted') : t('messagesPage.unmuted'),
   })
 }
 
@@ -247,7 +249,7 @@ watch(
     try {
       await hydrateFromRoute()
     } catch (error) {
-      $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to sync conversation route' })
+      $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.routeSyncFailed') })
     }
   },
 )
@@ -262,7 +264,7 @@ watch(
     try {
       await hydrateFromRoute()
     } catch (error) {
-      $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to update conversation layout' })
+      $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.layoutUpdateFailed') })
     }
   },
 )
@@ -280,7 +282,7 @@ onMounted(async () => {
     window.addEventListener('focus', refreshInboxSilently)
     document.addEventListener('visibilitychange', refreshInboxSilently)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to load inbox' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.loadInboxFailed') })
   }
 })
 

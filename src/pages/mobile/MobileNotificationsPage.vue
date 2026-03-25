@@ -1,17 +1,17 @@
 <template>
   <q-page class="q-pa-md q-pb-xl mobile-notifications-page">
     <div class="content-card q-pa-md">
-      <div class="section-label">Alerts</div>
-      <div class="text-h6 text-weight-bold q-mt-sm">Recent community activity</div>
-      <div class="text-body2 muted-text q-mt-sm">Likes, comments, follows, and important system signals show up here first.</div>
+      <div class="section-label">{{ $t('mobileNotifications.pageLabel') }}</div>
+      <div class="text-h6 text-weight-bold q-mt-sm">{{ $t('mobileNotifications.pageTitle') }}</div>
+      <div class="text-body2 muted-text q-mt-sm">{{ $t('mobileNotifications.pageCopy') }}</div>
 
       <div class="summary-grid q-mt-md">
         <div class="inline-stat">
-          <div class="card-meta">Unread</div>
+          <div class="card-meta">{{ $t('messagesPage.unread') }}</div>
           <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ unreadCount }}</div>
         </div>
         <div class="inline-stat">
-          <div class="card-meta">Total</div>
+          <div class="card-meta">{{ $t('mobileNotifications.total') }}</div>
           <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ notifications.length }}</div>
         </div>
       </div>
@@ -29,8 +29,8 @@
     </div>
 
     <div v-else-if="!notifications.length" class="content-card q-pa-xl utility-empty q-mt-md">
-      <div class="text-subtitle1 text-weight-bold">No notifications yet</div>
-      <div class="text-body2 muted-text q-mt-sm">Once people reply, follow you, or interact with your work, they will appear here.</div>
+      <div class="text-subtitle1 text-weight-bold">{{ $t('mobileNotifications.emptyTitle') }}</div>
+      <div class="text-body2 muted-text q-mt-sm">{{ $t('mobileNotifications.emptyCopy') }}</div>
     </div>
 
     <div v-else class="q-mt-md">
@@ -45,9 +45,9 @@
           <div class="text-body2 muted-text q-mt-sm">{{ notification.body }}</div>
           <div class="row items-center justify-between q-mt-md">
             <div class="text-caption" :style="{ color: notification.read_at ? 'var(--kdc-copy-soft)' : 'var(--kdc-primary)' }">
-              {{ notification.read_at ? 'Read' : 'Unread' }}
+              {{ notification.read_at ? $t('mobileNotifications.read') : $t('messagesPage.unread') }}
             </div>
-            <q-btn v-if="notificationTarget(notification)" flat dense no-caps color="primary" label="Open" :to="notificationTarget(notification)" />
+            <q-btn v-if="notificationTarget(notification)" flat dense no-caps color="primary" :label="$t('search.open')" :to="notificationTarget(notification)" />
           </div>
         </article>
       </section>
@@ -57,10 +57,12 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useCommunityStore } from 'src/stores/community-store'
 import { formatRelative } from 'src/utils/formatters'
 
 const community = useCommunityStore()
+const { t } = useI18n()
 const loading = ref(false)
 const notifications = computed(() => community.notifications)
 const unreadCount = computed(() => notifications.value.filter((item) => !item.read_at).length)
@@ -71,9 +73,9 @@ const groupedNotifications = computed(() => {
   startOfWeek.setDate(startOfToday.getDate() - 7)
 
   const groups = [
-    { label: 'Today', items: [] },
-    { label: 'This week', items: [] },
-    { label: 'Earlier', items: [] },
+    { label: t('messagesPage.today'), items: [] },
+    { label: t('mobileNotifications.thisWeek'), items: [] },
+    { label: t('mobileNotifications.earlier'), items: [] },
   ]
 
   for (const notification of notifications.value) {

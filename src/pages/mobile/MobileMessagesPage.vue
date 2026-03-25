@@ -19,8 +19,8 @@
         <section class="mobile-inbox-panel">
           <div class="mobile-inbox-panel__head">
             <div>
-              <div class="mobile-inbox-panel__eyebrow">Inbox</div>
-              <div class="mobile-inbox-panel__title">Messages</div>
+              <div class="mobile-inbox-panel__eyebrow">{{ $t('messagesPage.inbox') }}</div>
+              <div class="mobile-inbox-panel__title">{{ $t('nav.inbox') }}</div>
             </div>
             <q-btn
               flat
@@ -37,7 +37,7 @@
             dense
             outlined
             class="input-surface mobile-inbox-panel__search"
-            placeholder="Search"
+            :placeholder="$t('common.searchPlaceholder')"
             @update:model-value="handleSearch"
           >
             <template #prepend>
@@ -47,13 +47,13 @@
 
           <div class="mobile-inbox-panel__list">
             <div class="mobile-inbox-panel__stats">
-              <span>{{ chat.conversations.length }} chats</span>
-              <span>{{ chat.unreadCount }} unread</span>
+              <span>{{ chat.conversations.length }} {{ $t('messagesPage.chats') }}</span>
+              <span>{{ chat.unreadCount }} {{ $t('messagesPage.unread') }}</span>
             </div>
 
             <div v-if="chat.loadingList" class="empty-state-card mobile-inbox-panel__empty">
               <q-spinner color="white" size="24px" />
-              <div class="text-body2 q-mt-sm">Loading conversations...</div>
+              <div class="text-body2 q-mt-sm">{{ $t('messagesPage.loadingConversations') }}</div>
             </div>
 
             <template v-else-if="chat.conversations.length">
@@ -68,14 +68,14 @@
 
             <div v-else class="empty-state-card mobile-inbox-panel__empty">
               <q-icon name="forum" size="26px" color="white" />
-              <div class="text-subtitle2 text-weight-bold q-mt-sm">No conversations yet</div>
-              <div class="text-body2 q-mt-xs">Start a new thread with another builder.</div>
+              <div class="text-subtitle2 text-weight-bold q-mt-sm">{{ $t('messagesPage.noConversations') }}</div>
+              <div class="text-body2 q-mt-xs">{{ $t('mobileMessages.startThreadCopy') }}</div>
             </div>
           </div>
         </section>
 
         <section v-if="developerSuggestions.length" class="mobile-inbox-quickstart">
-          <div class="mobile-inbox-quickstart__label">Quick start</div>
+          <div class="mobile-inbox-quickstart__label">{{ $t('mobileMessages.quickStart') }}</div>
           <div class="mobile-inbox-quickstart__row">
             <q-btn
               v-for="developer in developerSuggestions"
@@ -118,6 +118,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import ChatProfilePanel from 'src/components/chat/ChatProfilePanel.vue'
 import ConversationListItem from 'src/components/chat/ConversationListItem.vue'
 import ConversationPane from 'src/components/chat/ConversationPane.vue'
@@ -127,6 +128,7 @@ import { useCommunityStore } from 'src/stores/community-store'
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const chat = useChatStore()
 const community = useCommunityStore()
 let refreshTimerId = null
@@ -162,7 +164,7 @@ async function handleSearch(search) {
   try {
     await chat.fetchConversations(search)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to load inbox' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.loadInboxFailed') })
   }
 }
 
@@ -172,7 +174,7 @@ async function openConversation(conversationId) {
     detailsOpen.value = false
     await router.push(`/m/messages/${conversationId}`)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to open conversation' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.openConversationFailed') })
   }
 }
 
@@ -181,7 +183,7 @@ async function startConversation(recipientId) {
     const conversation = await chat.startConversation(recipientId)
     await openConversation(conversation.id)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to start conversation' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.startConversationFailed') })
   }
 }
 
@@ -189,7 +191,7 @@ async function sendMessage(body) {
   try {
     await chat.sendMessage(body)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to send message' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.sendMessageFailed') })
   }
 }
 
@@ -197,12 +199,12 @@ async function retryMessage(message) {
   try {
     await chat.retryMessage(message)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to retry message' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.retryMessageFailed') })
   }
 }
 
 function handleConversationAction(label) {
-  $q.notify({ type: 'info', message: `${label} is ready for the next product step.` })
+  $q.notify({ type: 'info', message: t('messagesPage.actionReady', { label }) })
 }
 
 function focusConversationSearch() {
@@ -214,7 +216,7 @@ function toggleMuteConversation() {
   mutedConversation.value = !mutedConversation.value
   $q.notify({
     type: 'info',
-    message: mutedConversation.value ? 'Conversation muted' : 'Conversation unmuted',
+    message: mutedConversation.value ? t('messagesPage.muted') : t('messagesPage.unmuted'),
   })
 }
 
@@ -237,7 +239,7 @@ watch(
     try {
       await chat.openConversation(conversationId)
     } catch (error) {
-      $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to load conversation' })
+      $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.openConversationFailed') })
     }
   },
   { immediate: true },
@@ -255,7 +257,7 @@ onMounted(async () => {
     window.addEventListener('focus', refreshInboxSilently)
     document.addEventListener('visibilitychange', refreshInboxSilently)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to load inbox' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('messagesPage.loadInboxFailed') })
   }
 })
 

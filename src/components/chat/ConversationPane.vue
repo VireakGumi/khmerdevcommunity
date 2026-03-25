@@ -6,7 +6,7 @@
           <q-btn flat round dense icon="arrow_back" color="grey-5" @click="$emit('back')" />
         </div>
         <q-avatar size="48px" class="chat-pane-avatar" color="primary" text-color="white">
-          <img v-if="conversation.partner?.avatar_url" :src="conversation.partner.avatar_url" :alt="conversation.partner?.name || 'Partner avatar'" />
+          <img v-if="conversation.partner?.avatar_url" :src="conversation.partner.avatar_url" :alt="conversation.partner?.name || t('messagesPage.unknownDeveloper')" />
           <span v-else>{{ conversation.partner?.name?.charAt(0) || '?' }}</span>
         </q-avatar>
         <div class="chat-pane-copy">
@@ -20,7 +20,7 @@
       </div>
       <div class="chat-pane-actions kdc-action-cluster kdc-inline-scroll kdc-action-cluster--nowrap">
         <q-btn v-if="!mobile" flat round dense class="chat-pane-action-btn" icon="search" color="grey-5" @click="toggleSearch">
-          <q-tooltip>Search in conversation</q-tooltip>
+          <q-tooltip>{{ $t('messagesPage.searchConversation') }}</q-tooltip>
         </q-btn>
         <q-btn flat round dense class="chat-pane-action-btn" icon="phone" color="primary" />
         <q-btn flat round dense class="chat-pane-action-btn" :icon="detailsOpen ? 'dock_to_right' : 'info'" color="grey-5" @click="$emit('toggle-details')" />
@@ -34,7 +34,7 @@
           color="secondary"
           :to="conversation.partner ? `/m/u/${conversation.partner.username}` : '/m/developers'"
         >
-          <q-tooltip>Profile</q-tooltip>
+          <q-tooltip>{{ $t('messagesPage.profile') }}</q-tooltip>
         </q-btn>
         <q-btn
           v-else
@@ -45,14 +45,14 @@
           icon="person"
           :to="conversation.partner ? `/u/${conversation.partner.username}` : '/developers'"
         >
-          Profile
+          {{ $t('messagesPage.profile') }}
         </q-btn>
       </div>
     </div>
 
     <div v-if="!mobile" class="chat-pane-banner">
       <span class="chat-pane-banner__dot" />
-      Keep the thread focused on feedback, project updates, and quick follow-ups.
+      {{ $t('messagesPage.bannerCopy') }}
     </div>
 
     <div v-if="searchOpen" class="chat-pane-search">
@@ -62,7 +62,7 @@
         outlined
         autofocus
         clearable
-        placeholder="Search messages"
+        :placeholder="$t('messagesPage.searchMessages')"
         class="input-surface chat-pane-search__input"
       >
         <template #prepend>
@@ -70,25 +70,25 @@
         </template>
       </q-input>
       <div class="chat-pane-search__meta">
-        <span v-if="searchQuery">{{ filteredMessages.length }} result{{ filteredMessages.length === 1 ? '' : 's' }}</span>
-        <span v-else>Type to filter this thread.</span>
+        <span v-if="searchQuery">{{ $t('messagesPage.resultCount', filteredMessages.length) }}</span>
+        <span v-else>{{ $t('messagesPage.typeToFilter') }}</span>
       </div>
     </div>
 
     <div ref="scrollArea" class="chat-message-scroll" @scroll="handleScroll">
       <div v-if="loading" class="empty-state-card">
         <q-spinner color="primary" size="24px" />
-        <div class="text-body2 muted-text q-mt-sm">Loading conversation...</div>
+        <div class="text-body2 muted-text q-mt-sm">{{ $t('messagesPage.loadingConversation') }}</div>
       </div>
       <div v-else-if="!filteredMessages.length && searchQuery" class="chat-thread-empty">
         <q-icon name="search_off" color="primary" size="26px" />
-        <div class="text-subtitle2 text-weight-bold q-mt-sm">No matching messages</div>
-        <div class="text-body2 muted-text q-mt-xs">Try a different name, phrase, or code keyword.</div>
+        <div class="text-subtitle2 text-weight-bold q-mt-sm">{{ $t('messagesPage.noMatchingMessages') }}</div>
+        <div class="text-body2 muted-text q-mt-xs">{{ $t('messagesPage.noMatchingMessagesCopy') }}</div>
       </div>
       <div v-else-if="!messages.length" class="chat-thread-empty">
         <q-icon name="mark_chat_read" color="primary" size="26px" />
-        <div class="text-subtitle2 text-weight-bold q-mt-sm">Start the thread</div>
-        <div class="text-body2 muted-text q-mt-xs">Send the first message to get this conversation moving.</div>
+        <div class="text-subtitle2 text-weight-bold q-mt-sm">{{ $t('messagesPage.startThread') }}</div>
+        <div class="text-body2 muted-text q-mt-xs">{{ $t('messagesPage.startThreadCopy') }}</div>
       </div>
       <template v-else>
         <template v-for="item in timelineItems" :key="item.key">
@@ -133,6 +133,7 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { copyToClipboard, useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import MessageBubble from './MessageBubble.vue'
 import MessageComposer from './MessageComposer.vue'
 
@@ -169,6 +170,7 @@ const props = defineProps({
 
 const emit = defineEmits(['send', 'retry', 'back', 'toggle-details'])
 const $q = useQuasar()
+const { t } = useI18n()
 const searchOpen = ref(false)
 const searchQuery = ref('')
 const replyMessage = ref(null)
@@ -182,11 +184,11 @@ function formatDayLabel(dateString) {
   yesterday.setDate(today.getDate() - 1)
 
   if (date.toDateString() === today.toDateString()) {
-    return 'Today'
+    return t('messagesPage.today')
   }
 
   if (date.toDateString() === yesterday.toDateString()) {
-    return 'Yesterday'
+    return t('messagesPage.yesterday')
   }
 
   return date.toLocaleDateString([], { month: 'long', day: 'numeric' })
@@ -249,14 +251,14 @@ const paneStatus = computed(() => {
   const lastMessage = props.conversation?.last_message
 
   if (!lastMessage?.is_mine) {
-    return 'Direct thread'
+    return t('messagesPage.directThread')
   }
 
   if (lastMessage.pending) {
-    return 'Sending...'
+    return t('messagesPage.sending')
   }
 
-  return lastMessage.is_read ? 'Seen' : 'Delivered'
+  return lastMessage.is_read ? t('messagesPage.seen') : t('messagesPage.delivered')
 })
 
 function handleScroll() {
@@ -295,9 +297,9 @@ function replyToMessage(message) {
 async function copyMessage(body) {
   try {
     await copyToClipboard(body)
-    $q.notify({ type: 'positive', message: 'Message copied' })
+    $q.notify({ type: 'positive', message: t('messagesPage.messageCopied') })
   } catch {
-    $q.notify({ type: 'negative', message: 'Failed to copy message' })
+    $q.notify({ type: 'negative', message: t('messagesPage.copyMessageFailed') })
   }
 }
 

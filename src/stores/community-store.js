@@ -428,9 +428,44 @@ export const useCommunityStore = defineStore('community', {
       return this.projects
     },
 
+    async fetchProject(slug) {
+      const { data } = await api.get(`/projects/${slug}`)
+      return data
+    },
+
     async createProject(payload) {
       const { data } = await api.post('/projects', payload)
       this.projects.unshift(data)
+      return data
+    },
+
+    async updateProject(slug, payload) {
+      const { data } = await api.put(`/projects/${slug}`, payload)
+      const projectIndex = this.projects.findIndex((item) => item.id === data.id)
+      const publicProjectIndex = this.publicProfile?.projects?.findIndex((item) => item.id === data.id) ?? -1
+
+      if (projectIndex >= 0) {
+        this.projects.splice(projectIndex, 1, data)
+      }
+
+      if (publicProjectIndex >= 0) {
+        this.publicProfile.projects.splice(publicProjectIndex, 1, data)
+      }
+
+      return data
+    },
+
+    async deleteProject(slug, projectId = null) {
+      const { data } = await api.delete(`/projects/${slug}`)
+
+      if (projectId) {
+        this.projects = this.projects.filter((item) => item.id !== projectId)
+
+        if (this.publicProfile?.projects?.length) {
+          this.publicProfile.projects = this.publicProfile.projects.filter((item) => item.id !== projectId)
+        }
+      }
+
       return data
     },
 
@@ -440,11 +475,35 @@ export const useCommunityStore = defineStore('community', {
       return this.events
     },
 
+    async fetchEvent(eventId) {
+      const { data } = await api.get(`/events/${eventId}`)
+      return data
+    },
+
     async createEvent(payload) {
       const requestPayload = payload.thumbnail ? buildFormData(payload) : payload
       const config = payload.thumbnail ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
       const { data } = await api.post('/events', requestPayload, config)
       this.events.unshift(data)
+      return data
+    },
+
+    async updateEvent(eventId, payload) {
+      const requestPayload = payload.thumbnail ? buildFormData({ ...payload, _method: 'PUT' }) : payload
+      const config = payload.thumbnail ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+      const { data } = await api.post(`/events/${eventId}`, requestPayload, config)
+      const eventIndex = this.events.findIndex((item) => item.id === data.id)
+
+      if (eventIndex >= 0) {
+        this.events.splice(eventIndex, 1, data)
+      }
+
+      return data
+    },
+
+    async deleteEvent(eventId) {
+      const { data } = await api.delete(`/events/${eventId}`)
+      this.events = this.events.filter((item) => item.id !== eventId)
       return data
     },
 
@@ -592,39 +651,39 @@ export const useCommunityStore = defineStore('community', {
       return data
     },
 
-    async search(query) {
-      const { data } = await api.get('/search', { params: { q: query } })
+    async search(query, options = {}) {
+      const { data } = await api.get('/search', { params: { q: query, ...options } })
       this.searchQuery = data.query || query
       this.searchLists.posts.items = data.posts || []
       this.searchLists.posts.loading = false
       this.searchLists.posts.hasMore = false
       this.searchLists.posts.currentPage = 1
       this.searchLists.posts.total = (data.posts || []).length
-      this.searchLists.posts.params = { q: query }
+      this.searchLists.posts.params = { q: query, ...options }
       this.searchLists.developers.items = data.developers || []
       this.searchLists.developers.loading = false
       this.searchLists.developers.hasMore = false
       this.searchLists.developers.currentPage = 1
       this.searchLists.developers.total = (data.developers || []).length
-      this.searchLists.developers.params = { q: query }
+      this.searchLists.developers.params = { q: query, ...options }
       this.searchLists.projects.items = data.projects || []
       this.searchLists.projects.loading = false
       this.searchLists.projects.hasMore = false
       this.searchLists.projects.currentPage = 1
       this.searchLists.projects.total = (data.projects || []).length
-      this.searchLists.projects.params = { q: query }
+      this.searchLists.projects.params = { q: query, ...options }
       this.searchLists.events.items = data.events || []
       this.searchLists.events.loading = false
       this.searchLists.events.hasMore = false
       this.searchLists.events.currentPage = 1
       this.searchLists.events.total = (data.events || []).length
-      this.searchLists.events.params = { q: query }
+      this.searchLists.events.params = { q: query, ...options }
       this.searchLists.jobs.items = data.jobs || []
       this.searchLists.jobs.loading = false
       this.searchLists.jobs.hasMore = false
       this.searchLists.jobs.currentPage = 1
       this.searchLists.jobs.total = (data.jobs || []).length
-      this.searchLists.jobs.params = { q: query }
+      this.searchLists.jobs.params = { q: query, ...options }
       this.searchResults = data
       return data
     },

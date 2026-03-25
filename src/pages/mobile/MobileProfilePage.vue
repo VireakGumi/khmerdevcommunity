@@ -3,8 +3,8 @@
     <div class="content-card portfolio-banner q-pa-md mobile-profile-hero">
       <div class="row items-start justify-between q-col-gutter-sm">
         <div class="col">
-          <div class="section-label khmer-copy">Profile</div>
-          <div class="text-h6 text-weight-bold q-mt-sm">Your mobile identity view</div>
+          <div class="section-label khmer-copy">{{ $t('mobileProfile.pageLabel') }}</div>
+          <div class="text-h6 text-weight-bold q-mt-sm">{{ $t('mobileProfile.pageTitle') }}</div>
         </div>
         <div class="col-auto">
           <q-btn flat round dense color="grey-5" icon="settings" to="/m/settings" />
@@ -29,28 +29,28 @@
 
       <div class="summary-grid q-mt-md">
         <div class="inline-stat">
-          <div class="card-meta">Skills</div>
+          <div class="card-meta">{{ $t('mobileProfile.skills') }}</div>
           <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ user?.skills?.length || 0 }}</div>
         </div>
         <div class="inline-stat">
-          <div class="card-meta">Work</div>
+          <div class="card-meta">{{ $t('mobileProfile.work') }}</div>
           <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ user?.featured_work?.length || 0 }}</div>
         </div>
         <div class="inline-stat">
-          <div class="card-meta">Links</div>
+          <div class="card-meta">{{ $t('mobileProfile.links') }}</div>
           <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ activeLinks }}</div>
         </div>
       </div>
 
       <div class="mobile-profile-actions q-mt-md">
-        <q-btn flat no-caps color="secondary" icon="public" label="Public" :to="`/m/u/${user?.username}`" />
-        <q-btn flat no-caps color="primary" icon="edit" label="Edit portfolio" to="/m/portfolio" />
-        <q-btn flat no-caps color="secondary" icon="mail" label="Inbox" to="/m/messages" />
+        <q-btn flat no-caps color="secondary" icon="public" :label="$t('mobileProfile.public')" :to="`/m/u/${user?.username}`" />
+        <q-btn flat no-caps color="primary" icon="edit" :label="$t('mobileProfile.editPortfolio')" to="/m/portfolio" />
+        <q-btn flat no-caps color="secondary" icon="mail" :label="$t('nav.inbox')" to="/m/messages" />
       </div>
     </div>
 
     <div class="content-card q-pa-md q-mt-md">
-      <div class="section-label khmer-copy">Skills</div>
+      <div class="section-label khmer-copy">{{ $t('mobileProfile.skills') }}</div>
       <div class="q-gutter-sm q-mt-sm">
         <q-chip v-for="skill in user?.skills || []" :key="skill" square class="theme-chip theme-chip-success">
           {{ skill }}
@@ -59,7 +59,7 @@
     </div>
 
     <div v-if="user?.featured_work?.length" class="q-mt-md">
-      <div class="section-label khmer-copy q-mb-sm">Featured Work</div>
+      <div class="section-label khmer-copy q-mb-sm">{{ $t('mobileProfile.featuredWork') }}</div>
       <div v-for="work in user.featured_work" :key="work.title" class="stack-card q-pa-md q-mb-sm mobile-profile-work">
         <div class="text-subtitle2 text-weight-bold">{{ work.title }}</div>
         <div class="text-body2 muted-text q-mt-xs">{{ work.description }}</div>
@@ -68,11 +68,11 @@
     </div>
 
     <div class="content-card q-pa-md q-mt-md">
-      <div class="section-label khmer-copy">Links</div>
+      <div class="section-label khmer-copy">{{ $t('mobileProfile.links') }}</div>
       <div class="q-mt-sm text-body2 muted-text">
         <div v-for="item in linkItems" :key="item.label" class="mobile-profile-link-row">
           <span class="muted-text">{{ item.label }}</span>
-          <span class="ellipsis">{{ item.value || 'Not set' }}</span>
+          <span class="ellipsis">{{ item.value || $t('mobileProfile.notSet') }}</span>
         </div>
       </div>
     </div>

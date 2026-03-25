@@ -2,12 +2,12 @@
   <q-page padding>
     <div class="page-intro q-mb-lg kdc-page-head">
       <div>
-        <div class="section-label khmer-copy">Community Feed</div>
-        <div class="text-h4 text-weight-bold q-mt-sm">Progress updates, launches, and useful discussion</div>
-        <div class="text-body2 muted-text q-mt-sm">A tighter social feed for Khmer builders. Read what is shipping, respond quickly, and keep useful work visible.</div>
+        <div class="section-label khmer-copy">{{ $t('feed.pageLabel') }}</div>
+        <div class="text-h4 text-weight-bold q-mt-sm">{{ $t('feed.pageTitle') }}</div>
+        <div class="text-body2 muted-text q-mt-sm">{{ $t('feed.pageCopy') }}</div>
       </div>
       <div class="page-actions kdc-page-head__actions">
-        <q-btn color="primary" no-caps icon="add_comment" label="New post" :disable="!session.isAuthenticated" @click="composerOpen = true" />
+        <q-btn color="primary" no-caps icon="add_comment" :label="$t('feed.newPost')" :disable="!session.isAuthenticated" @click="composerOpen = true" />
       </div>
     </div>
 
@@ -20,27 +20,27 @@
               <span v-else>{{ session.user?.name?.charAt(0) || 'K' }}</span>
             </q-avatar>
             <div class="feed-composer-copy">
-              <div class="section-label khmer-copy">Feed Composer</div>
-              <div class="text-h6 text-weight-bold q-mt-xs">Share a launch, lesson, or collaboration request</div>
-              <div class="text-body2 muted-text q-mt-xs">Write a quick progress note, point people to a repo, or ask for feedback from the community.</div>
+              <div class="section-label khmer-copy">{{ $t('feed.composerLabel') }}</div>
+              <div class="text-h6 text-weight-bold q-mt-xs">{{ $t('feed.composerTitle') }}</div>
+              <div class="text-body2 muted-text q-mt-xs">{{ $t('feed.composerCopy') }}</div>
             </div>
           </div>
 
           <div v-if="!session.isAuthenticated" class="text-body2 muted-text q-mt-sm">
-            Sign in to publish, like, and comment.
+            {{ $t('feed.signInPrompt') }}
           </div>
 
           <div class="feed-composer-toolbar q-mt-md kdc-page-head">
             <q-tabs v-model="activeTab" dense inline-label no-caps class="feed-tabs">
-              <q-tab name="for-you" icon="auto_awesome" label="For you" />
-              <q-tab name="following" icon="groups" label="Following" :disable="!session.isAuthenticated" />
-              <q-tab name="trending" icon="trending_up" label="Trending" />
+              <q-tab name="for-you" icon="auto_awesome" :label="$t('feed.forYou')" />
+              <q-tab name="following" icon="groups" :label="$t('feed.following')" :disable="!session.isAuthenticated" />
+              <q-tab name="trending" icon="trending_up" :label="$t('feed.trending')" />
             </q-tabs>
             <q-btn
               color="primary"
               no-caps
               icon="edit_square"
-              label="Create post"
+              :label="$t('feed.createPost')"
               :loading="publishing"
               :disable="!session.isAuthenticated"
               @click="composerOpen = true"
@@ -72,9 +72,9 @@
         </div>
 
         <div v-else-if="!feed.length" class="content-card q-pa-xl text-center feed-empty-state">
-          <div class="section-label">Feed</div>
-          <div class="text-h6 text-weight-bold q-mt-md">No posts yet</div>
-          <div class="text-body2 muted-text q-mt-sm">Switch tabs or come back once the community starts publishing updates.</div>
+          <div class="section-label">{{ $t('feed.pageLabel') }}</div>
+          <div class="text-h6 text-weight-bold q-mt-md">{{ $t('feed.emptyTitle') }}</div>
+          <div class="text-body2 muted-text q-mt-sm">{{ $t('feed.emptyCopy') }}</div>
         </div>
 
         <template v-else>
@@ -88,11 +88,11 @@
                   </q-avatar>
                   <div class="feed-post-copy">
                     <div class="feed-post-meta-line">
-                      <strong>{{ post.user.name }}</strong>
-                      <span class="card-meta">@{{ post.user.username || post.user.name?.toLowerCase().replace(/\s+/g, '') }}</span>
+                      <strong class="feed-post-author-name">{{ post.user.name }}</strong>
+                      <span class="card-meta feed-post-meta-item feed-post-meta-item--handle">@{{ post.user.username || post.user.name?.toLowerCase().replace(/\s+/g, '') }}</span>
                       <span class="card-meta">• {{ formatRelative(post.published_at) }}</span>
                     </div>
-                    <div class="feed-post-kickers">
+                    <div class="feed-post-kickers feed-post-kickers--compact">
                       <q-chip
                         v-if="postTypeBadge(post)"
                         square
@@ -105,14 +105,14 @@
                     </div>
                   </div>
                 </div>
-                <q-btn flat round dense icon="more_horiz" color="grey-5" />
+                <q-btn class="feed-post-menu" flat round dense icon="more_horiz" color="grey-5" />
               </div>
 
               <div class="feed-post-body q-mt-md">
                 <div class="card-title">
                   <router-link :to="`/feed/${post.id}`" class="post-detail-link">{{ post.title }}</router-link>
                 </div>
-                <div class="text-body1 muted-text q-mt-sm">{{ post.excerpt }}</div>
+                <div v-if="hasUsefulExcerpt(post.excerpt)" class="text-body1 muted-text q-mt-sm">{{ post.excerpt }}</div>
                 <div v-if="post.media?.length" class="row q-col-gutter-sm q-mt-md feed-media-grid">
                   <div
                     v-for="(src, index) in post.media"
@@ -190,7 +190,7 @@
                       </q-avatar>
                       <div class="feed-comment-head__copy">
                         <div class="feed-comment-author__name">{{ comment.user?.name }}</div>
-                        <div class="card-meta">{{ comment.user?.headline || `@${comment.user?.username || 'builder'}` }}</div>
+                        <!-- <div class="card-meta">{{ comment.user?.headline || `@${comment.user?.username || 'builder'}` }}</div> -->
                         <div class="card-meta">{{ formatRelative(comment.created_at) }}</div>
                       </div>
                     </router-link>
@@ -512,12 +512,14 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { useInfinitePager } from 'src/composables/useInfinitePager'
 import { useCommunityStore } from 'src/stores/community-store'
 import { useSessionStore } from 'src/stores/session-store'
 import { formatRelative } from 'src/utils/formatters'
 
 const $q = useQuasar()
+const { t } = useI18n()
 const community = useCommunityStore()
 const session = useSessionStore()
 
@@ -586,6 +588,16 @@ function postTypeBadge(post) {
   return postTypeConfig[post.type] || null
 }
 
+function hasUsefulExcerpt(value) {
+  const text = String(value || '').trim()
+
+  if (!text) {
+    return false
+  }
+
+  return /[A-Za-z0-9\u1780-\u17FF]/.test(text)
+}
+
 function openMediaViewer(images = [], index = 0, title = '') {
   mediaViewerImages.value = images
   mediaViewerIndex.value = index
@@ -625,9 +637,9 @@ async function publishPost() {
     await community.createPost(postForm)
     Object.assign(postForm, { title: '', topic: '', excerpt: '', body: '', type: 'text', images: [] })
     composerOpen.value = false
-    $q.notify({ type: 'positive', message: 'Post published' })
+    $q.notify({ type: 'positive', message: t('feed.postPublished') })
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to publish post' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.publishFailed') })
   } finally {
     publishing.value = false
   }
@@ -643,7 +655,7 @@ async function toggleLike(postId) {
   try {
     await community.likePost(postId)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to like post' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.likeFailed') })
   } finally {
     likeLoading[postId] = false
   }
@@ -662,7 +674,7 @@ async function submitComment(postId) {
     commentDrafts[postId] = ''
     delete replyTargets[postId]
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to add comment' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.commentFailed') })
   } finally {
     commentLoading[postId] = false
   }
@@ -678,7 +690,7 @@ async function toggleBookmark(postId) {
   try {
     await community.togglePostBookmark(postId)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to save post' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.saveFailed') })
   } finally {
     bookmarkLoading[postId] = false
   }
@@ -688,7 +700,7 @@ async function toggleFollow(userId) {
   try {
     await community.toggleFollow(userId)
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to update follow' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.followFailed') })
   }
 }
 
@@ -725,7 +737,7 @@ async function saveCommentEdit(comment) {
     await community.updatePostComment(comment.id, editingDraft.value.trim())
     cancelCommentEdit()
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to update comment' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.updateCommentFailed') })
   } finally {
     commentEditing[comment.id] = false
   }
@@ -733,8 +745,8 @@ async function saveCommentEdit(comment) {
 
 async function removeComment(postId, comment) {
   $q.dialog({
-    title: 'Delete comment?',
-    message: 'This will remove the comment and any replies under it.',
+    title: t('feed.deleteCommentTitle'),
+    message: t('feed.deleteCommentMessage'),
     cancel: true,
     persistent: true,
     ok: { color: 'negative', label: 'Delete', noCaps: true },
@@ -755,7 +767,7 @@ async function removeComment(postId, comment) {
         clearReply(postId)
       }
     } catch (error) {
-      $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to delete comment' })
+      $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.deleteCommentFailed') })
     }
   })
 }

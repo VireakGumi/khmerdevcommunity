@@ -44,37 +44,37 @@
     <template v-else>
       <section class="content-card home-hero q-pa-lg q-mb-lg">
         <div class="home-hero__main">
-          <div class="portfolio-pro-kicker">Khmer Developer Community</div>
+          <div class="portfolio-pro-kicker">{{ $t('home.heroKicker') }}</div>
           <div class="home-badge-row q-mt-md">
-            <q-chip square class="theme-chip theme-chip-primary">Khmer-first Network</q-chip>
-            <q-chip square class="theme-chip theme-chip-secondary">Write + Build + Ship</q-chip>
-            <q-chip square class="theme-chip">Community + Portfolio</q-chip>
+            <q-chip square class="theme-chip theme-chip-primary">{{ $t('home.badgeNetwork') }}</q-chip>
+            <q-chip square class="theme-chip theme-chip-secondary">{{ $t('home.badgeShip') }}</q-chip>
+            <q-chip square class="theme-chip">{{ $t('home.badgePortfolio') }}</q-chip>
           </div>
 
-          <h1 class="home-title q-mt-lg">A focused developer home for publishing work, finding collaborators, and building a public portfolio.</h1>
+          <h1 class="home-title q-mt-lg">{{ $t('home.heroTitle') }}</h1>
           <p class="home-summary q-mt-md">
-            Track what the community is shipping this week, see who is active, and move from social profile to public portfolio without losing the product flow.
+            {{ $t('home.heroCopy') }}
           </p>
 
           <div class="hero-actions q-mt-lg">
-            <q-btn color="primary" no-caps label="Open community feed" to="/feed" />
-            <q-btn flat color="secondary" no-caps label="Build portfolio" to="/portfolio" />
-            <q-btn flat color="secondary" no-caps icon="favorite" label="Support KhmerDevCommunity" @click="scrollToSupport" />
-            <q-btn flat color="secondary" no-caps icon="phone_iphone" label="Open mobile" to="/m" />
+            <q-btn color="primary" no-caps :label="$t('home.openFeed')" to="/feed" />
+            <q-btn flat color="secondary" no-caps :label="$t('home.buildPortfolio')" to="/portfolio" />
+            <q-btn flat color="secondary" no-caps icon="favorite" :label="$t('home.support')" @click="scrollToSupport" />
+            <q-btn flat color="secondary" no-caps icon="phone_iphone" :label="$t('home.openMobile')" to="/m" />
           </div>
 
           <div class="home-value-strip q-mt-lg">
             <div class="home-value-pill">
               <q-icon name="forum" size="16px" />
-              <span>Community threads that stay readable</span>
+              <span>{{ $t('home.valueThreads') }}</span>
             </div>
             <div class="home-value-pill">
               <q-icon name="terminal" size="16px" />
-              <span>Projects and stacks discoverable in one place</span>
+              <span>{{ $t('home.valueProjects') }}</span>
             </div>
             <div class="home-value-pill">
               <q-icon name="account_box" size="16px" />
-              <span>Public portfolio without leaving the product flow</span>
+              <span>{{ $t('home.valuePortfolio') }}</span>
             </div>
           </div>
 
@@ -82,36 +82,36 @@
             <div v-for="(value, key) in home?.stats" :key="key" class="home-stat-card">
               <span class="portfolio-stat-label">{{ formatLabel(key) }}</span>
               <strong>{{ value }}</strong>
-              <span class="card-meta">{{ statCopy[key] }}</span>
+              <span class="card-meta">{{ $t(statCopy[key]) }}</span>
             </div>
           </div>
         </div>
 
         <aside class="home-hero__rail">
           <div class="home-rail-card">
-            <div class="section-label">Today in the Circle</div>
+            <div class="section-label">{{ $t('home.todayCircle') }}</div>
             <div class="mini-card-title q-mt-sm">{{ home?.featuredPost?.title }}</div>
             <div class="mini-card-copy q-mt-sm">{{ home?.featuredPost?.excerpt }}</div>
             <div class="home-meta-stack q-mt-md">
               <div class="card-meta">{{ home?.featuredPost?.user?.name }}</div>
-              <div class="card-meta">{{ home?.featuredPost?.likes_count }} likes | {{ home?.featuredPost?.comments_count || 0 }} comments</div>
+              <div class="card-meta">{{ home?.featuredPost?.likes_count }} {{ $t('home.likes') }} | {{ home?.featuredPost?.comments_count || 0 }} {{ $t('home.comments') }}</div>
             </div>
-            <q-btn flat no-caps color="primary" label="View feed" class="q-mt-md" to="/feed" />
+            <q-btn flat no-caps color="primary" :label="$t('home.viewFeed')" class="q-mt-md" to="/feed" />
           </div>
 
           <div class="home-rail-card">
-            <div class="section-label">Builders to Watch</div>
+            <div class="section-label">{{ $t('home.buildersWatch') }}</div>
             <div class="home-people-list q-mt-sm">
               <div v-for="developer in featuredDevelopers" :key="developer.id" class="home-person-row">
                 <div class="home-person-copy">
                   <div class="mini-card-title">{{ developer.name }}</div>
                   <div class="card-meta q-mt-xs">@{{ developer.username }} <span v-if="developer.location">| {{ developer.location }}</span></div>
                   <div class="home-person-metrics q-mt-xs">
-                    <span>{{ developer.posts_count }} posts</span>
-                    <span>{{ developer.projects_count }} projects</span>
+                    <span>{{ developer.posts_count }} {{ $t('home.posts') }}</span>
+                    <span>{{ developer.projects_count }} {{ $t('home.projects') }}</span>
                   </div>
                 </div>
-                <q-btn flat dense no-caps color="secondary" label="View" :to="`/u/${developer.username}`" />
+                <q-btn flat dense no-caps color="secondary" :label="$t('home.view')" :to="`/u/${developer.username}`" />
               </div>
             </div>
           </div>
@@ -121,20 +121,20 @@
       <section class="content-card q-pa-lg q-mb-lg home-dashboard-shell">
         <div class="portfolio-section-head home-dashboard-head">
           <div>
-            <div class="section-label">Dashboard</div>
-            <h2 class="portfolio-section-title">Your main product surfaces at a glance</h2>
+            <div class="section-label">{{ $t('home.dashboard') }}</div>
+            <h2 class="portfolio-section-title">{{ $t('home.dashboardTitle') }}</h2>
           </div>
-          <div class="card-meta">Preview the most active projects, jobs, and events without turning the home page into a feed.</div>
+          <div class="card-meta">{{ $t('home.dashboardCopy') }}</div>
         </div>
 
         <div class="home-dashboard-grid q-mt-lg">
           <section class="home-board home-board--dashboard">
             <div class="portfolio-section-head home-board__head">
               <div>
-                <div class="section-label">Projects</div>
-                <h3 class="portfolio-section-title">Builders launching in public</h3>
+                <div class="section-label">{{ $t('search.projects') }}</div>
+                <h3 class="portfolio-section-title">{{ $t('home.buildersLaunching') }}</h3>
               </div>
-              <q-btn flat no-caps color="primary" label="See all" to="/projects" />
+              <q-btn flat no-caps color="primary" :label="$t('home.seeAll')" to="/projects" />
             </div>
 
             <div class="home-item-list q-mt-md">
@@ -150,7 +150,7 @@
                 <div class="home-item__meta q-mt-md">
                   <span>{{ project.stars_count }} stars</span>
                   <span>{{ project.contributors_count }} contributors</span>
-                  <span v-if="project.looking_for_collaborators">Open to collab</span>
+                  <span v-if="project.looking_for_collaborators">{{ $t('home.openToCollab') }}</span>
                 </div>
                 <div v-if="project.tech_stack?.length" class="home-stack-row q-mt-sm">
                   <span v-for="stack in project.tech_stack.slice(0, 3)" :key="stack" class="home-stack-pill">{{ stack }}</span>
@@ -162,10 +162,10 @@
           <section class="home-board home-board--dashboard">
             <div class="portfolio-section-head home-board__head">
               <div>
-                <div class="section-label">Jobs</div>
-                <h3 class="portfolio-section-title">Roles the community can move on now</h3>
+                <div class="section-label">{{ $t('search.jobs') }}</div>
+                <h3 class="portfolio-section-title">{{ $t('home.rolesNow') }}</h3>
               </div>
-              <q-btn flat no-caps color="primary" label="Browse more" to="/jobs" />
+              <q-btn flat no-caps color="primary" :label="$t('home.browseMore')" to="/jobs" />
             </div>
 
             <div class="home-item-list q-mt-md">
@@ -181,7 +181,7 @@
                 <div class="home-item__meta q-mt-md">
                   <span>{{ job.job_type }}</span>
                   <span>{{ job.experience_level }}</span>
-                  <span>{{ job.location || 'Remote-friendly' }}</span>
+                  <span>{{ job.location || $t('home.remoteFriendly') }}</span>
                 </div>
               </article>
             </div>
@@ -190,10 +190,10 @@
           <section class="home-board home-board--dashboard">
             <div class="portfolio-section-head home-board__head">
               <div>
-                <div class="section-label">Events</div>
-                <h3 class="portfolio-section-title">Community rhythm and meetups</h3>
+                <div class="section-label">{{ $t('search.events') }}</div>
+                <h3 class="portfolio-section-title">{{ $t('home.communityRhythm') }}</h3>
               </div>
-              <q-btn flat no-caps color="primary" label="See all" to="/events" />
+              <q-btn flat no-caps color="primary" :label="$t('home.seeAll')" to="/events" />
             </div>
 
             <div class="home-item-list q-mt-md">
@@ -215,15 +215,15 @@
       <section id="support-khmerdevcommunity" class="content-card q-pa-lg home-dashboard-shell home-support-shell">
         <div class="portfolio-section-head home-board__head">
           <div>
-            <div class="section-label">Support KhmerDevCommunity</div>
-            <h2 class="portfolio-section-title">Help fund the website and community product</h2>
+            <div class="section-label">{{ $t('home.support') }}</div>
+            <h2 class="portfolio-section-title">{{ $t('home.supportTitle') }}</h2>
           </div>
-          <q-btn flat no-caps color="primary" label="Open community feed" to="/feed" />
+          <q-btn flat no-caps color="primary" :label="$t('home.openFeed')" to="/feed" />
         </div>
 
         <div class="home-support-banner q-mt-md">
           <div>
-            <div class="mini-card-title">Support the platform behind the community</div>
+            <div class="mini-card-title">{{ $t('home.supportBannerTitle') }}</div>
             <div class="mini-card-copy q-mt-sm">
               {{ donationSupport.summary }}
             </div>
@@ -237,36 +237,36 @@
 
         <div class="home-donation-panel q-mt-lg">
           <div class="home-donation-panel__copy">
-            <div class="section-label">KHQR Donation</div>
+            <div class="section-label">{{ $t('home.khqrDonation') }}</div>
             <h3 class="portfolio-section-title q-mt-sm">{{ donationSupport.title }}</h3>
             <div class="mini-card-copy q-mt-sm">
-              Scan the KHQR code or copy the payload into your banking app. This is the fastest way to support the platform right now.
+              {{ $t('home.khqrCopy') }}
             </div>
             <div class="home-support-tiers q-mt-md">
               <span class="home-support-tier">{{ donationSupport.currency }}</span>
               <span v-if="donationSupport.khqr_account_name" class="home-support-tier">{{ donationSupport.khqr_account_name }}</span>
             </div>
             <div class="hero-actions home-support-actions q-mt-lg">
-              <q-btn color="primary" no-caps label="Copy KHQR" :disable="!donationSupport.khqr_payload" @click="copyKhqr" />
+              <q-btn color="primary" no-caps :label="$t('home.copyKhqr')" :disable="!donationSupport.khqr_payload" @click="copyKhqr" />
               <q-btn
                 flat
                 color="secondary"
                 no-caps
-                label="I already donated"
+                :label="$t('home.alreadyDonated')"
                 :disable="!donationSupport.khqr_payload"
                 @click="donationDialog = true"
               />
             </div>
             <div v-if="donationSupport.contact_email" class="card-meta q-mt-md">
-              Contact: {{ donationSupport.contact_email }}
+              {{ $t('home.contact') }}: {{ donationSupport.contact_email }}
             </div>
           </div>
 
           <div class="home-donation-qr">
             <img v-if="khqrCodeSrc" :src="khqrCodeSrc" alt="KhmerDevCommunity KHQR donation code" class="home-donation-qr__image" />
             <div v-else class="home-donation-qr__fallback">
-              <div class="mini-card-title">KHQR not configured yet</div>
-              <div class="mini-card-copy q-mt-sm">Add `COMMUNITY_DONATION_KHQR` in the Laravel `.env` file to show the real code here.</div>
+              <div class="mini-card-title">{{ $t('home.khqrMissing') }}</div>
+              <div class="mini-card-copy q-mt-sm">{{ $t('home.khqrMissingCopy') }}</div>
             </div>
           </div>
         </div>
@@ -298,10 +298,10 @@
         <q-card class="content-card donation-confirm-dialog">
           <q-card-section class="row items-start justify-between q-col-gutter-md">
             <div class="col">
-              <div class="section-label">Donation Confirmation</div>
-              <div class="text-h6 q-mt-sm">Submit your KHQR payment proof</div>
+              <div class="section-label">{{ $t('home.donationDialogLabel') }}</div>
+              <div class="text-h6 q-mt-sm">{{ $t('home.donationDialogTitle') }}</div>
               <div class="mini-card-copy q-mt-sm">
-                After you scan and pay, send the amount and screenshot here so the team can verify it.
+                {{ $t('home.donationDialogCopy') }}
               </div>
             </div>
             <div class="col-auto">
@@ -318,32 +318,32 @@
                 type="number"
                 min="1"
                 step="0.01"
-                label="Amount"
+                :label="$t('home.amount')"
               />
               <q-input
                 v-model="donationForm.transfer_reference"
                 outlined
                 class="input-surface"
-                label="Transfer reference"
+                :label="$t('home.transferReference')"
               />
               <q-input
                 v-model="donationForm.donor_name"
                 outlined
                 class="input-surface"
-                label="Your name"
+                :label="$t('home.yourName')"
               />
               <q-input
                 v-model="donationForm.donor_email"
                 outlined
                 class="input-surface"
                 type="email"
-                label="Your email"
+                :label="$t('home.yourEmail')"
               />
               <q-file
                 v-model="donationForm.proof_image"
                 outlined
                 class="input-surface donation-confirm-grid__full"
-                label="Payment screenshot"
+                :label="$t('home.paymentScreenshot')"
                 accept=".jpg,.jpeg,.png,.webp"
               />
               <q-input
@@ -351,14 +351,14 @@
                 outlined
                 autogrow
                 class="input-surface donation-confirm-grid__full"
-                label="Note"
+                :label="$t('home.note')"
               />
             </div>
           </q-card-section>
 
           <q-card-actions align="right">
-            <q-btn flat no-caps label="Cancel" @click="donationDialog = false" />
-            <q-btn color="primary" no-caps label="Submit confirmation" :loading="donationSubmitting" @click="submitDonationConfirmation" />
+            <q-btn flat no-caps :label="$t('home.cancel')" @click="donationDialog = false" />
+            <q-btn color="primary" no-caps :label="$t('home.submitConfirmation')" :loading="donationSubmitting" @click="submitDonationConfirmation" />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -369,12 +369,14 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { copyToClipboard, useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import QRCode from 'qrcode'
 import { api } from 'boot/axios'
 import { useCommunityStore } from 'src/stores/community-store'
 import { formatDate } from 'src/utils/formatters'
 
 const $q = useQuasar()
+const { t } = useI18n()
 const community = useCommunityStore()
 const home = computed(() => community.home)
 const loading = ref(false)
@@ -388,8 +390,8 @@ const featuredJobs = computed(() => (home.value?.featuredJobs || []).slice(0, 4)
 const featuredEvents = computed(() => (home.value?.featuredEvents || []).slice(0, 4))
 const featuredDevelopers = computed(() => (home.value?.developers || []).slice(0, 4))
 const donationSupport = ref({
-  title: 'Support KhmerDevCommunity',
-  summary: 'Help fund hosting, product development, moderation, and community growth for KhmerDevCommunity.',
+  title: '',
+  summary: '',
   currency: 'USD',
   khqr_payload: '',
   khqr_account_name: 'KhmerDevCommunity',
@@ -399,11 +401,11 @@ const donationSupport = ref({
 })
 
 const statCopy = {
-  developers: 'active public builders',
-  projects: 'projects listed',
-  events: 'upcoming sessions',
-  posts: 'community posts published',
-  jobs: 'open roles listed',
+  developers: 'home.activeBuilders',
+  projects: 'home.projectsListed',
+  events: 'home.upcomingSessions',
+  posts: 'home.postsPublished',
+  jobs: 'home.openRolesListed',
 }
 
 function formatLabel(value) {
@@ -450,12 +452,12 @@ async function copyKhqr() {
   }
 
   await copyToClipboard(donationSupport.value.khqr_payload)
-  $q.notify({ type: 'positive', message: 'KHQR copied' })
+  $q.notify({ type: 'positive', message: t('home.khqrCopied') })
 }
 
 async function submitDonationConfirmation() {
   if (!donationForm.value.amount || !donationForm.value.proof_image) {
-    $q.notify({ type: 'warning', message: 'Amount and screenshot are required' })
+    $q.notify({ type: 'warning', message: t('home.donationRequired') })
     return
   }
 
@@ -481,7 +483,7 @@ async function submitDonationConfirmation() {
 
     donationDialog.value = false
     donationForm.value = createDonationForm()
-    $q.notify({ type: 'positive', message: 'Donation confirmation submitted' })
+    $q.notify({ type: 'positive', message: t('home.donationSubmitted') })
   } finally {
     donationSubmitting.value = false
   }

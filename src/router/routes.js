@@ -15,6 +15,7 @@ const routes = [
         meta: { title: 'Create Post', requiresAuth: true },
       },
       { path: 'projects', name: 'projects', component: () => import('pages/ProjectsPage.vue'), meta: { title: 'Projects' } },
+      { path: 'projects/:slug', name: 'project-detail', component: () => import('pages/ProjectDetailPage.vue'), meta: { title: 'Project Detail' } },
       { path: 'events', name: 'events', component: () => import('pages/EventsPage.vue'), meta: { title: 'Events' } },
       { path: 'events/:id', name: 'event-detail', component: () => import('pages/EventDetailPage.vue'), meta: { title: 'Event Detail' } },
       { path: 'developers', name: 'developers', component: () => import('pages/DevelopersPage.vue'), meta: { title: 'Developer Profiles' } },
@@ -120,6 +121,12 @@ const routes = [
         name: 'mobile-projects',
         component: () => import('pages/ProjectsPage.vue'),
         meta: { mobileShell: true, requiresAuth: true, title: 'Projects' },
+      },
+      {
+        path: 'm/projects/:slug',
+        name: 'mobile-project-detail',
+        component: () => import('pages/ProjectDetailPage.vue'),
+        meta: { mobileShell: true, requiresAuth: true, title: 'Project Detail' },
       },
       {
         path: 'm/events',

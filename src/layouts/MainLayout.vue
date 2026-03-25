@@ -61,20 +61,35 @@
                   <q-list style="min-width: 220px">
                     <q-item clickable to="/m/profile" v-close-popup>
                       <q-item-section avatar><q-icon name="person" /></q-item-section>
-                      <q-item-section>Profile</q-item-section>
+                      <q-item-section>{{ $t('nav.profile') }}</q-item-section>
                     </q-item>
                     <q-item clickable to="/m/portfolio" v-close-popup>
                       <q-item-section avatar><q-icon name="account_box" /></q-item-section>
-                      <q-item-section>Portfolio</q-item-section>
+                      <q-item-section>{{ $t('nav.portfolio') }}</q-item-section>
                     </q-item>
                     <q-item clickable to="/m/settings" v-close-popup>
                       <q-item-section avatar><q-icon name="settings" /></q-item-section>
-                      <q-item-section>Settings</q-item-section>
+                      <q-item-section>{{ $t('nav.settings') }}</q-item-section>
+                    </q-item>
+                    <q-item clickable>
+                      <q-item-section avatar><q-icon name="language" /></q-item-section>
+                      <q-item-section>{{ $t('common.language') }}</q-item-section>
+                      <q-item-section side>
+                        <q-select
+                          dense
+                          borderless
+                          emit-value
+                          map-options
+                          :model-value="locale"
+                          :options="localeOptions"
+                          @update:model-value="changeLocale"
+                        />
+                      </q-item-section>
                     </q-item>
                     <q-separator class="theme-separator" />
                     <q-item clickable v-close-popup @click="handleLogout">
                       <q-item-section avatar><q-icon name="logout" /></q-item-section>
-                      <q-item-section>Logout</q-item-section>
+                      <q-item-section>{{ $t('nav.logout') }}</q-item-section>
                     </q-item>
                   </q-list>
                 </q-menu>
@@ -91,7 +106,7 @@
             </div>
 
             <div class="topbar-mobile-title">
-              {{ route.name === 'mobile-home' ? 'Home' : route.meta.title || route.name }}
+              {{ route.name === 'mobile-home' ? $t('nav.home') : route.meta.title || route.name }}
             </div>
 
             <div class="topbar-mobile-search">
@@ -100,7 +115,7 @@
                 outlined
                 class="input-surface nav-search nav-search--mobile"
                 v-model="searchText"
-                placeholder="Search posts, builders, projects, jobs"
+                :placeholder="$t('common.searchPlaceholder')"
                 @keyup.enter="submitSearch"
               >
                 <template #prepend>
@@ -224,16 +239,31 @@
                       <q-list style="min-width: 220px">
                         <q-item clickable to="/portfolio" v-close-popup>
                           <q-item-section avatar><q-icon name="account_box" /></q-item-section>
-                          <q-item-section>My portfolio</q-item-section>
+                          <q-item-section>{{ $t('nav.myPortfolio') }}</q-item-section>
                         </q-item>
                         <q-item clickable to="/settings" v-close-popup>
                           <q-item-section avatar><q-icon name="settings" /></q-item-section>
-                          <q-item-section>Settings</q-item-section>
+                          <q-item-section>{{ $t('nav.settings') }}</q-item-section>
+                        </q-item>
+                        <q-item clickable>
+                          <q-item-section avatar><q-icon name="language" /></q-item-section>
+                          <q-item-section>{{ $t('common.language') }}</q-item-section>
+                          <q-item-section side>
+                            <q-select
+                              dense
+                              borderless
+                              emit-value
+                              map-options
+                              :model-value="locale"
+                              :options="localeOptions"
+                              @update:model-value="changeLocale"
+                            />
+                          </q-item-section>
                         </q-item>
                         <q-separator class="theme-separator" />
                         <q-item clickable v-close-popup @click="handleLogout">
                           <q-item-section avatar><q-icon name="logout" /></q-item-section>
-                          <q-item-section>Logout</q-item-section>
+                          <q-item-section>{{ $t('nav.logout') }}</q-item-section>
                         </q-item>
                       </q-list>
                     </q-menu>
@@ -255,7 +285,7 @@
                     outlined
                     class="input-surface nav-search nav-search--mobile"
                     v-model="searchText"
-                    placeholder="Search posts, builders, projects, jobs"
+                    :placeholder="$t('common.searchPlaceholder')"
                     @keyup.enter="submitSearch"
                   >
                     <template #prepend>
@@ -281,13 +311,14 @@
 
                   <div class="row items-center q-gutter-sm topbar-actions">
                     <template v-if="session.isAuthenticated">
-                      <div class="topbar-utility">Write | Build | Connect</div>
+                      <div class="topbar-utility">{{ $t('nav.writeBuildConnect') }}</div>
+                      <div class="topbar-utility">{{ $t('nav.writeBuildConnect') }}</div>
                       <q-input
                         dense
                         outlined
                         class="input-surface nav-search"
                         v-model="searchText"
-                        placeholder="Search posts, builders, projects, jobs"
+                        :placeholder="$t('common.searchPlaceholder')"
                         @keyup.enter="submitSearch"
                       >
                         <template #prepend>
@@ -298,6 +329,16 @@
                       <q-btn flat round class="app-icon-btn" icon="notifications" @click="router.push('/notifications')" />
                       <q-btn flat round class="app-icon-btn" icon="mail" @click="router.push('/messages')">
                         <q-badge v-if="chat.unreadCount" color="primary" rounded floating>{{ chat.unreadCount }}</q-badge>
+                      </q-btn>
+                      <q-btn flat round class="app-icon-btn" icon="language">
+                        <q-menu class="glass-panel panel-card" anchor="bottom right" self="top right">
+                          <q-list style="min-width: 180px">
+                            <q-item v-for="option in localeOptions" :key="option.value" clickable v-close-popup @click="changeLocale(option.value)">
+                              <q-item-section>{{ option.label }}</q-item-section>
+                              <q-item-section v-if="locale === option.value" side><q-icon name="done" /></q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-menu>
                       </q-btn>
                       <q-btn flat round class="theme-toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" @click="toggleTheme" />
                       <q-btn flat no-caps class="profile-trigger">
@@ -314,36 +355,36 @@
                           <q-list style="min-width: 220px">
                             <q-item clickable to="/portfolio" v-close-popup>
                               <q-item-section avatar><q-icon name="account_box" /></q-item-section>
-                              <q-item-section>My portfolio</q-item-section>
+                              <q-item-section>{{ $t('nav.myPortfolio') }}</q-item-section>
                             </q-item>
                             <q-item clickable to="/developers" v-close-popup>
                               <q-item-section avatar><q-icon name="groups" /></q-item-section>
-                              <q-item-section>Developer profiles</q-item-section>
+                              <q-item-section>{{ $t('nav.developerProfiles') }}</q-item-section>
                             </q-item>
                             <q-item clickable to="/notifications" v-close-popup>
                               <q-item-section avatar><q-icon name="notifications" /></q-item-section>
-                              <q-item-section>Notifications</q-item-section>
+                              <q-item-section>{{ $t('nav.notifications') }}</q-item-section>
                             </q-item>
                             <q-item clickable to="/saved" v-close-popup>
                               <q-item-section avatar><q-icon name="bookmark" /></q-item-section>
-                              <q-item-section>Saved</q-item-section>
+                              <q-item-section>{{ $t('nav.saved') }}</q-item-section>
                             </q-item>
                             <q-item clickable to="/messages" v-close-popup>
                               <q-item-section avatar><q-icon name="mail" /></q-item-section>
-                              <q-item-section>Messages</q-item-section>
+                              <q-item-section>{{ $t('nav.inbox') }}</q-item-section>
                             </q-item>
                             <q-item clickable to="/settings" v-close-popup>
                               <q-item-section avatar><q-icon name="settings" /></q-item-section>
-                              <q-item-section>Settings</q-item-section>
+                              <q-item-section>{{ $t('nav.settings') }}</q-item-section>
                             </q-item>
                             <q-item clickable to="/m" v-close-popup>
                               <q-item-section avatar><q-icon name="phone_iphone" /></q-item-section>
-                              <q-item-section>Mobile app</q-item-section>
+                              <q-item-section>{{ $t('nav.mobile') }}</q-item-section>
                             </q-item>
                             <q-separator class="theme-separator" />
                             <q-item clickable v-close-popup @click="handleLogout">
                               <q-item-section avatar><q-icon name="logout" /></q-item-section>
-                              <q-item-section>Logout</q-item-section>
+                              <q-item-section>{{ $t('nav.logout') }}</q-item-section>
                             </q-item>
                           </q-list>
                         </q-menu>
@@ -351,9 +392,19 @@
                     </template>
                     <template v-else>
                       <q-btn flat round class="theme-toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" @click="toggleTheme" />
-                      <q-btn flat no-caps class="ghost-btn" color="secondary" icon="phone_iphone" label="Mobile" to="/m" />
-                      <q-btn flat no-caps class="ghost-btn" color="secondary" label="Login" to="/login" />
-                      <q-btn color="primary" no-caps label="Register" to="/register" />
+                      <q-btn flat round class="app-icon-btn" icon="language">
+                        <q-menu class="glass-panel panel-card" anchor="bottom right" self="top right">
+                          <q-list style="min-width: 180px">
+                            <q-item v-for="option in localeOptions" :key="option.value" clickable v-close-popup @click="changeLocale(option.value)">
+                              <q-item-section>{{ option.label }}</q-item-section>
+                              <q-item-section v-if="locale === option.value" side><q-icon name="done" /></q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-menu>
+                      </q-btn>
+                      <q-btn flat no-caps class="ghost-btn" color="secondary" icon="phone_iphone" :label="$t('nav.mobile')" to="/m" />
+                      <q-btn flat no-caps class="ghost-btn" color="secondary" :label="$t('nav.login')" to="/login" />
+                      <q-btn color="primary" no-caps :label="$t('nav.register')" to="/register" />
                     </template>
                   </div>
                 </div>
@@ -390,57 +441,64 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import SidebarContent from 'src/components/app-shell/SidebarContent.vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useChatStore } from 'src/stores/chat-store'
 import { useSessionStore } from 'src/stores/session-store'
 import { initializePushNotifications, unregisterPushNotifications } from 'src/services/push-notifications'
+import { getSavedLocale, setSavedLocale } from 'src/services/app-locale'
 
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+const { t, locale } = useI18n()
 const session = useSessionStore()
 const chat = useChatStore()
 const searchText = ref(route.query.q || '')
 const sidebarOpen = ref(false)
+const localeOptions = [
+  { label: 'English', value: 'en-US' },
+  { label: 'ខ្មែរ', value: 'km-KH' },
+]
 
 const desktopLinks = computed(() => [
-  { to: '/', label: 'Home', icon: 'home' },
-  { to: '/feed', label: 'Feed', icon: 'dynamic_feed' },
-  { to: '/jobs', label: 'Jobs', icon: 'work' },
-  { to: '/projects', label: 'Projects', icon: 'terminal' },
-  { to: '/events', label: 'Events', icon: 'event' },
-  { to: '/developers', label: 'Builders', icon: 'groups' },
-  { to: '/search', label: 'Search', icon: 'search' },
-  ...(session.isAuthenticated ? [{ to: '/saved', label: 'Saved', icon: 'bookmark' }] : []),
-  ...(session.isAuthenticated ? [{ to: '/portfolio', label: 'Portfolio', icon: 'account_box' }] : []),
-  ...(session.isAdmin ? [{ to: '/admin/donations', label: 'Admin', icon: 'shield' }] : []),
-  ...(session.isAdmin ? [{ to: '/admin/reports', label: 'Reports', icon: 'flag' }] : []),
+  { to: '/', label: t('nav.home'), icon: 'home' },
+  { to: '/feed', label: t('nav.feed'), icon: 'dynamic_feed' },
+  { to: '/jobs', label: t('nav.jobs'), icon: 'work' },
+  { to: '/projects', label: t('nav.projects'), icon: 'terminal' },
+  { to: '/events', label: t('nav.events'), icon: 'event' },
+  { to: '/developers', label: t('nav.builders'), icon: 'groups' },
+  { to: '/search', label: t('nav.search'), icon: 'search' },
+  ...(session.isAuthenticated ? [{ to: '/saved', label: t('nav.saved'), icon: 'bookmark' }] : []),
+  ...(session.isAuthenticated ? [{ to: '/portfolio', label: t('nav.portfolio'), icon: 'account_box' }] : []),
+  ...(session.isAdmin ? [{ to: '/admin/donations', label: t('nav.admin'), icon: 'shield' }] : []),
+  ...(session.isAdmin ? [{ to: '/admin/reports', label: t('nav.reports'), icon: 'flag' }] : []),
 ])
 
 const mobileAppPrimaryLinks = computed(() => [
-  { to: '/m', label: 'Home', icon: 'home' },
-  { to: '/m/feed', label: 'Feed', icon: 'rss_feed' },
+  { to: '/m', label: t('nav.home'), icon: 'home' },
+  { to: '/m/feed', label: t('nav.feed'), icon: 'rss_feed' },
 ])
 
 const mobileAppSecondaryLinks = computed(() => [
-  { to: '/m/messages', label: 'Inbox', icon: 'mail', badge: chat.unreadCount || null },
-  { to: '/m/profile', label: 'Profile', icon: 'person' },
+  { to: '/m/messages', label: t('nav.inbox'), icon: 'mail', badge: chat.unreadCount || null },
+  { to: '/m/profile', label: t('nav.profile'), icon: 'person' },
 ])
 
 const mobileWebLinks = computed(() =>
   session.isAuthenticated
     ? [
-        { to: '/', label: 'Home', icon: 'home' },
-        { to: '/feed', label: 'Feed', icon: 'dynamic_feed' },
-        { to: '/search', label: 'Search', icon: 'search' },
-        { to: '/messages', label: 'Inbox', icon: 'mail', badge: chat.unreadCount || null },
-        { to: '/portfolio', label: 'Profile', icon: 'person' },
+        { to: '/', label: t('nav.home'), icon: 'home' },
+        { to: '/feed', label: t('nav.feed'), icon: 'dynamic_feed' },
+        { to: '/search', label: t('nav.search'), icon: 'search' },
+        { to: '/messages', label: t('nav.inbox'), icon: 'mail', badge: chat.unreadCount || null },
+        { to: '/portfolio', label: t('nav.profile'), icon: 'person' },
       ]
     : [
-        { to: '/', label: 'Home', icon: 'home' },
-        { to: '/feed', label: 'Feed', icon: 'dynamic_feed' },
-        { to: '/search', label: 'Search', icon: 'search' },
-        { to: '/login', label: 'Login', icon: 'login' },
-        { to: '/register', label: 'Join', icon: 'person_add' },
+        { to: '/', label: t('nav.home'), icon: 'home' },
+        { to: '/feed', label: t('nav.feed'), icon: 'dynamic_feed' },
+        { to: '/search', label: t('nav.search'), icon: 'search' },
+        { to: '/login', label: t('nav.login'), icon: 'login' },
+        { to: '/register', label: t('nav.join'), icon: 'person_add' },
       ],
 )
 
@@ -518,6 +576,10 @@ function toggleTheme() {
   localStorage.setItem('kdc_theme_dark', next ? '1' : '0')
 }
 
+function changeLocale(nextLocale) {
+  locale.value = setSavedLocale(nextLocale)
+}
+
 async function submitSearch() {
   await router.push({
     path: route.meta.mobileShell ? '/m/search' : '/search',
@@ -571,6 +633,7 @@ async function setupPushNotifications() {
 }
 
 onMounted(() => {
+  locale.value = getSavedLocale()
   const stored = localStorage.getItem('kdc_theme_dark')
 
   if (stored === null) {

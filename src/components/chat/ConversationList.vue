@@ -5,7 +5,7 @@
       dense
       outlined
       class="input-surface"
-      placeholder="Search developers"
+      :placeholder="$t('messagesPage.searchDevelopers')"
       @update:model-value="$emit('update:search', $event)"
     >
       <template #prepend>
@@ -16,7 +16,7 @@
     <div class="chat-list-scroll q-mt-md">
       <div v-if="loading" class="empty-state-card">
         <q-spinner color="primary" size="24px" />
-        <div class="text-body2 muted-text q-mt-sm">Loading conversations...</div>
+        <div class="text-body2 muted-text q-mt-sm">{{ $t('messagesPage.loadingConversations') }}</div>
       </div>
 
       <conversation-list-item
@@ -30,8 +30,8 @@
 
       <div v-if="!loading && !conversations.length" class="empty-state-card">
         <q-icon name="forum" size="26px" color="primary" />
-        <div class="text-subtitle2 text-weight-bold q-mt-sm">No conversations yet</div>
-        <div class="text-body2 muted-text q-mt-xs">Start a thread from a developer profile or pick someone from the suggestions.</div>
+        <div class="text-subtitle2 text-weight-bold q-mt-sm">{{ $t('messagesPage.noConversations') }}</div>
+        <div class="text-body2 muted-text q-mt-xs">{{ $t('messagesPage.noConversationsCopy') }}</div>
       </div>
     </div>
   </section>

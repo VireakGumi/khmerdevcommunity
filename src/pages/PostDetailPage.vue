@@ -13,22 +13,22 @@
     </div>
 
     <div v-else-if="!post" class="content-card q-pa-xl utility-empty text-center">
-      <div class="text-h6 text-weight-bold">Post not found</div>
-      <div class="text-body2 muted-text q-mt-sm">This update may have been removed or is no longer available.</div>
-      <q-btn class="q-mt-md" color="primary" no-caps label="Back to feed" :to="backTarget" />
+      <div class="text-h6 text-weight-bold">{{ $t('postDetail.notFoundTitle') }}</div>
+      <div class="text-body2 muted-text q-mt-sm">{{ $t('postDetail.notFoundCopy') }}</div>
+      <q-btn class="q-mt-md" color="primary" no-caps :label="$t('postDetail.backToFeed')" :to="backTarget" />
     </div>
 
     <template v-else>
       <div class="page-intro q-mb-lg post-detail-intro">
         <div>
-          <div class="section-label">Feed Detail</div>
+          <div class="section-label">{{ $t('postDetail.pageLabel') }}</div>
           <div class="text-h4 text-weight-bold q-mt-sm">{{ post.title }}</div>
-          <div class="text-body2 muted-text q-mt-sm">Read the full update, view media, and keep the discussion in one place.</div>
+          <div class="text-body2 muted-text q-mt-sm">{{ $t('postDetail.pageCopy') }}</div>
         </div>
         <div class="page-actions post-detail-page-actions">
-          <q-btn flat no-caps color="secondary" icon="arrow_back" label="Back to feed" :to="backTarget" />
-          <q-btn flat no-caps color="grey-6" icon="content_copy" label="Copy link" @click="copyLink" />
-          <q-btn flat no-caps color="primary" icon="share" label="Share" @click="sharePost" />
+          <q-btn flat no-caps color="secondary" icon="arrow_back" :label="$t('postDetail.backToFeed')" :to="backTarget" />
+          <q-btn flat no-caps color="grey-6" icon="content_copy" :label="$t('postDetail.copyLink')" @click="copyLink" />
+          <q-btn flat no-caps color="primary" icon="share" :label="$t('postDetail.share')" @click="sharePost" />
         </div>
       </div>
 
@@ -56,7 +56,7 @@
                       {{ postTypeBadge(post).label }}
                     </q-chip>
                     <q-chip v-if="post.topic" square class="theme-chip theme-chip-primary">{{ post.topic }}</q-chip>
-                    <q-chip v-if="post.pinned" square class="theme-chip theme-chip-success">Pinned</q-chip>
+                    <q-chip v-if="post.pinned" square class="theme-chip theme-chip-success">{{ $t('feed.pinned') }}</q-chip>
                   </div>
                 </div>
               </div>
@@ -100,23 +100,23 @@
 
             <div class="post-detail-summary q-mt-lg">
               <div class="post-detail-summary__item">
-                <span class="card-meta">Posted</span>
+                <span class="card-meta">{{ $t('postDetail.posted') }}</span>
                 <strong>{{ formatPublished(post.published_at) }}</strong>
               </div>
               <div class="post-detail-summary__item">
-                <span class="card-meta">Author</span>
-                <strong>@{{ post.user?.username || 'builder' }}</strong>
+                <span class="card-meta">{{ $t('postDetail.author') }}</span>
+                <strong>@{{ post.user?.username || $t('postDetail.builderFallback') }}</strong>
               </div>
               <div class="post-detail-summary__item">
-                <span class="card-meta">Topic</span>
-                <strong>{{ post.topic || 'General' }}</strong>
+                <span class="card-meta">{{ $t('postDetail.topic') }}</span>
+                <strong>{{ post.topic || $t('postDetail.general') }}</strong>
               </div>
             </div>
 
             <div class="feed-post-stats q-mt-lg">
-              <div class="card-meta">{{ post.likes_count }} likes</div>
-              <div class="card-meta">{{ post.comments_count }} comments</div>
-              <div class="card-meta">{{ post.reading_time }} min read</div>
+              <div class="card-meta">{{ post.likes_count }} {{ $t('feed.likes') }}</div>
+              <div class="card-meta">{{ post.comments_count }} {{ $t('feed.comments') }}</div>
+              <div class="card-meta">{{ post.reading_time }} {{ $t('feed.minRead') }}</div>
             </div>
 
             <div class="feed-post-actions q-mt-md">
@@ -125,7 +125,7 @@
                 no-caps
                 :color="post.is_liked ? 'primary' : 'grey-5'"
                 :icon="post.is_liked ? 'favorite' : 'favorite_border'"
-                :label="post.is_liked ? 'Liked' : 'Like'"
+                :label="post.is_liked ? $t('feed.liked') : $t('feed.like')"
                 :loading="liking"
                 :disable="!session.isAuthenticated || liking"
                 @click="toggleLike"
@@ -135,7 +135,7 @@
                 no-caps
                 :color="post.is_saved ? 'secondary' : 'grey-5'"
                 :icon="post.is_saved ? 'bookmark' : 'bookmark_border'"
-                :label="post.is_saved ? 'Saved' : 'Save'"
+                :label="post.is_saved ? $t('feed.saved') : $t('feed.save')"
                 :loading="bookmarking"
                 :disable="!session.isAuthenticated || bookmarking"
                 @click="toggleBookmark"
@@ -146,10 +146,10 @@
 
             <div class="row items-center justify-between q-mb-md">
               <div>
-                <div class="section-label">Discussion</div>
-                <div class="text-subtitle2 text-weight-bold q-mt-sm">{{ post.comments?.length || 0 }} visible comments</div>
+                <div class="section-label">{{ $t('postDetail.discussion') }}</div>
+                <div class="text-subtitle2 text-weight-bold q-mt-sm">{{ t('postDetail.visibleComments', { count: post.comments?.length || 0 }) }}</div>
               </div>
-              <q-chip square class="theme-chip theme-chip-secondary">{{ post.comments_count || 0 }} total</q-chip>
+              <q-chip square class="theme-chip theme-chip-secondary">{{ t('postDetail.totalComments', { count: post.comments_count || 0 }) }}</q-chip>
             </div>
 
             <div v-if="post.comments?.length" class="compact-list feed-comment-list post-detail-comment-list">
@@ -169,7 +169,7 @@
                     </q-avatar>
                     <div class="feed-comment-head__copy">
                       <div class="feed-comment-author__name">{{ comment.user?.name }}</div>
-                      <div class="card-meta">@{{ comment.user?.username || 'builder' }}</div>
+                      <div class="card-meta">@{{ comment.user?.username || $t('postDetail.builderFallback') }}</div>
                       <div class="card-meta">{{ formatRelative(comment.created_at) }}</div>
                     </div>
                   </router-link>
@@ -181,7 +181,7 @@
                       color="primary"
                       class="post-detail-comment__reply-btn"
                       icon="reply"
-                      label="Reply"
+                      :label="$t('feed.reply')"
                       :disable="!session.isAuthenticated"
                       @click="startReply(comment)"
                     />
@@ -196,10 +196,10 @@
                       <q-menu auto-close class="theme-dialog">
                         <q-list dense style="min-width: 140px">
                           <q-item clickable @click="startCommentEdit(comment)">
-                            <q-item-section>Edit</q-item-section>
+                            <q-item-section>{{ $t('feed.edit') }}</q-item-section>
                           </q-item>
                           <q-item clickable class="text-negative" @click="removeComment(comment)">
-                            <q-item-section>Delete</q-item-section>
+                            <q-item-section>{{ $t('feed.delete') }}</q-item-section>
                           </q-item>
                         </q-list>
                       </q-menu>
@@ -213,11 +213,11 @@
                     dense
                     autogrow
                     class="input-surface"
-                    label="Edit comment"
+                    :label="$t('feed.editComment')"
                   />
                   <div class="feed-comment-editor__actions">
-                    <q-btn flat no-caps color="grey-6" label="Cancel" @click="cancelCommentEdit" />
-                    <q-btn color="primary" no-caps label="Save" :loading="Boolean(commentEditing[comment.id])" @click="saveCommentEdit(comment)" />
+                    <q-btn flat no-caps color="grey-6" :label="$t('feed.cancel')" @click="cancelCommentEdit" />
+                    <q-btn color="primary" no-caps :label="$t('feed.saveAction')" :loading="Boolean(commentEditing[comment.id])" @click="saveCommentEdit(comment)" />
                   </div>
                 </div>
                 <div v-else class="text-body2 q-mt-sm">{{ comment.body }}</div>
@@ -237,7 +237,7 @@
                           <span v-else>{{ reply.user?.name?.charAt(0) || '?' }}</span>
                         </q-avatar>
                         <span class="feed-comment-author__name">{{ reply.user?.name }}</span>
-                        <span class="card-meta">@{{ reply.user?.username || 'builder' }}</span>
+                        <span class="card-meta">@{{ reply.user?.username || $t('postDetail.builderFallback') }}</span>
                         <span class="card-meta">{{ formatRelative(reply.created_at) }}</span>
                       </router-link>
                       <q-btn
@@ -251,10 +251,10 @@
                         <q-menu auto-close class="theme-dialog">
                           <q-list dense style="min-width: 140px">
                             <q-item clickable @click="startCommentEdit(reply)">
-                              <q-item-section>Edit</q-item-section>
+                              <q-item-section>{{ $t('feed.edit') }}</q-item-section>
                             </q-item>
                             <q-item clickable class="text-negative" @click="removeComment(reply)">
-                              <q-item-section>Delete</q-item-section>
+                              <q-item-section>{{ $t('feed.delete') }}</q-item-section>
                             </q-item>
                           </q-list>
                         </q-menu>
@@ -267,11 +267,11 @@
                         dense
                         autogrow
                         class="input-surface"
-                        label="Edit reply"
+                        :label="$t('feed.editReply')"
                       />
                       <div class="feed-comment-editor__actions">
-                        <q-btn flat no-caps color="grey-6" label="Cancel" @click="cancelCommentEdit" />
-                        <q-btn color="primary" no-caps label="Save" :loading="Boolean(commentEditing[reply.id])" @click="saveCommentEdit(reply)" />
+                        <q-btn flat no-caps color="grey-6" :label="$t('feed.cancel')" @click="cancelCommentEdit" />
+                        <q-btn color="primary" no-caps :label="$t('feed.saveAction')" :loading="Boolean(commentEditing[reply.id])" @click="saveCommentEdit(reply)" />
                       </div>
                     </div>
                     <div v-else class="muted-text q-mt-xs">{{ reply.body }}</div>
@@ -281,8 +281,8 @@
             </div>
 
             <div v-else class="stack-card q-pa-md">
-              <div class="text-subtitle2 text-weight-bold">No comments yet</div>
-              <div class="text-body2 muted-text q-mt-xs">Start the discussion with feedback, context, or a useful follow-up.</div>
+              <div class="text-subtitle2 text-weight-bold">{{ $t('postDetail.noCommentsTitle') }}</div>
+              <div class="text-body2 muted-text q-mt-xs">{{ $t('postDetail.noCommentsCopy') }}</div>
             </div>
 
             <div class="feed-comment-compose row q-col-gutter-sm q-mt-md post-detail-comment-compose">
@@ -295,7 +295,7 @@
               <div class="col">
                 <div v-if="replyTarget" class="post-detail-reply-draft q-mb-sm">
                   <div>
-                    <div class="section-label">Replying to {{ replyTarget.user?.name }}</div>
+                    <div class="section-label">{{ t('feed.replyingTo', { name: replyTarget.user?.name }) }}</div>
                     <div class="card-meta">{{ replyTarget.body }}</div>
                   </div>
                   <q-btn flat round dense icon="close" color="grey-5" @click="clearReply" />
@@ -306,7 +306,7 @@
                   dense
                   autogrow
                   class="input-surface"
-                  :label="replyTarget ? 'Write a reply' : 'Add a comment'"
+                  :label="replyTarget ? $t('feed.writeReply') : $t('feed.addComment')"
                   :disable="!session.isAuthenticated"
                 />
               </div>
@@ -314,7 +314,7 @@
                 <q-btn
                   color="primary"
                   no-caps
-                  :label="replyTarget ? 'Reply' : 'Comment'"
+                  :label="replyTarget ? $t('feed.reply') : $t('feed.comment')"
                   :loading="commenting"
                   :disable="!session.isAuthenticated || !commentDraft || commenting"
                   @click="submitComment"
@@ -326,27 +326,27 @@
 
         <div class="col-12 col-xl-4">
           <div class="content-card q-pa-md post-detail-side-card">
-            <div class="section-label">Author</div>
+            <div class="section-label">{{ $t('postDetail.author') }}</div>
             <div class="text-h6 text-weight-bold q-mt-md">{{ post.user?.name }}</div>
             <div class="text-body2 muted-text q-mt-sm">@{{ post.user?.username }}</div>
-            <div class="text-body2 muted-text q-mt-sm">{{ post.user?.headline || 'Builder in the community' }}</div>
-            <q-btn class="q-mt-md" flat no-caps color="primary" icon="north_east" label="Open profile" :to="profileTarget" />
+            <div class="text-body2 muted-text q-mt-sm">{{ post.user?.headline || $t('postDetail.authorFallback') }}</div>
+            <q-btn class="q-mt-md" flat no-caps color="primary" icon="north_east" :label="$t('postDetail.openProfile')" :to="profileTarget" />
           </div>
 
           <div class="content-card q-pa-md q-mt-md post-detail-side-card">
-            <div class="section-label">Post Signals</div>
+            <div class="section-label">{{ $t('postDetail.postSignals') }}</div>
             <div class="summary-grid q-mt-md">
               <div class="inline-stat">
-                <div class="card-meta">Type</div>
-                <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ postTypeBadge(post)?.label || 'Update' }}</div>
+                <div class="card-meta">{{ $t('postDetail.type') }}</div>
+                <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ postTypeBadge(post)?.label || $t('postDetail.update') }}</div>
               </div>
               <div class="inline-stat">
-                <div class="card-meta">Media</div>
+                <div class="card-meta">{{ $t('postDetail.media') }}</div>
                 <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ post.media?.length || 0 }}</div>
               </div>
               <div class="inline-stat">
-                <div class="card-meta">Topic</div>
-                <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ post.topic || 'General' }}</div>
+                <div class="card-meta">{{ $t('postDetail.topic') }}</div>
+                <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ post.topic || $t('postDetail.general') }}</div>
               </div>
             </div>
           </div>
@@ -358,8 +358,8 @@
       <q-card class="theme-dialog feed-media-dialog">
         <q-card-section class="feed-media-dialog__head">
           <div>
-            <div class="section-label">Media</div>
-            <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ mediaViewerTitle || 'Post preview' }}</div>
+            <div class="section-label">{{ $t('feed.media') }}</div>
+            <div class="text-subtitle1 text-weight-bold q-mt-xs">{{ mediaViewerTitle || $t('feed.postPreview') }}</div>
           </div>
           <q-btn flat round dense icon="close" color="grey-5" v-close-popup />
         </q-card-section>
@@ -393,12 +393,14 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useCommunityStore } from 'src/stores/community-store'
 import { useSessionStore } from 'src/stores/session-store'
 import { formatDate, formatRelative } from 'src/utils/formatters'
 
 const $q = useQuasar()
 const route = useRoute()
+const { t } = useI18n()
 const community = useCommunityStore()
 const session = useSessionStore()
 
@@ -418,11 +420,11 @@ const mediaViewerIndex = ref(0)
 const mediaViewerTitle = ref('')
 
 const postTypeConfig = {
-  image: { label: 'Image', tone: 'theme-chip-primary' },
-  project_share: { label: 'Project', tone: 'theme-chip-secondary' },
-  event_share: { label: 'Event', tone: 'theme-chip-warning' },
-  job_share: { label: 'Job', tone: 'theme-chip-success' },
-  code_snippet: { label: 'Code', tone: 'theme-chip-secondary' },
+  image: { labelKey: 'postDetail.types.image', tone: 'theme-chip-primary' },
+  project_share: { labelKey: 'postDetail.types.project', tone: 'theme-chip-secondary' },
+  event_share: { labelKey: 'postDetail.types.event', tone: 'theme-chip-warning' },
+  job_share: { labelKey: 'postDetail.types.job', tone: 'theme-chip-success' },
+  code_snippet: { labelKey: 'postDetail.types.code', tone: 'theme-chip-secondary' },
 }
 
 const isMobileShell = computed(() => route.meta.mobileShell)
@@ -433,7 +435,8 @@ const profileTarget = computed(() => {
 })
 
 function postTypeBadge(value) {
-  return postTypeConfig[value?.type] || null
+  const config = postTypeConfig[value?.type]
+  return config ? { ...config, label: t(config.labelKey) } : null
 }
 
 function openMediaViewer(images = [], index = 0, title = '') {
@@ -454,9 +457,9 @@ function formatPublished(value) {
 async function copyLink() {
   try {
     await navigator.clipboard.writeText(window.location.href)
-    $q.notify({ type: 'positive', message: 'Post link copied' })
+    $q.notify({ type: 'positive', message: t('postDetail.postLinkCopied') })
   } catch {
-    $q.notify({ type: 'negative', message: 'Could not copy link' })
+    $q.notify({ type: 'negative', message: t('postDetail.copyLinkFailed') })
   }
 }
 
@@ -484,7 +487,7 @@ async function loadPost() {
     post.value = await community.fetchPost(route.params.id)
   } catch (error) {
     post.value = null
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to load post' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('postDetail.loadFailed') })
   } finally {
     loading.value = false
   }
@@ -505,7 +508,7 @@ async function toggleLike() {
       likes_count: data.likes_count,
     }
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to like post' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.likeFailed') })
   } finally {
     liking.value = false
   }
@@ -525,7 +528,7 @@ async function toggleBookmark() {
       is_saved: data.saved,
     }
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to save post' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.saveFailed') })
   } finally {
     bookmarking.value = false
   }
@@ -565,7 +568,7 @@ async function submitComment() {
     commentDraft.value = ''
     replyTarget.value = null
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to add comment' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.commentFailed') })
   } finally {
     commenting.value = false
   }
@@ -664,7 +667,7 @@ async function saveCommentEdit(comment) {
     }
     cancelCommentEdit()
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to update comment' })
+    $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.updateCommentFailed') })
   } finally {
     commentEditing.value[comment.id] = false
   }
@@ -672,12 +675,12 @@ async function saveCommentEdit(comment) {
 
 function removeComment(comment) {
   $q.dialog({
-    title: 'Delete comment?',
-    message: 'This will remove the comment and any replies under it.',
+    title: t('feed.deleteCommentTitle'),
+    message: t('feed.deleteCommentMessage'),
     cancel: true,
     persistent: true,
-    ok: { color: 'negative', label: 'Delete', noCaps: true },
-    cancelLabel: 'Cancel',
+    ok: { color: 'negative', label: t('feed.delete'), noCaps: true },
+    cancelLabel: t('feed.cancel'),
   }).onOk(async () => {
     try {
       await community.deletePostComment(comment.id)
@@ -696,7 +699,7 @@ function removeComment(comment) {
         cancelCommentEdit()
       }
     } catch (error) {
-      $q.notify({ type: 'negative', message: error.response?.data?.message || 'Failed to delete comment' })
+      $q.notify({ type: 'negative', message: error.response?.data?.message || t('feed.deleteCommentFailed') })
     }
   })
 }
